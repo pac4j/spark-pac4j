@@ -157,7 +157,7 @@ You can also explicitely compute a redirection url to a provider for authenticat
 
 ### Get the user profile
 
-After successful authentication, you can get the user profile using the `UserUtils.getProfile()``` method.
+After successful authentication, you can get the user profile using the `UserUtils.getProfile()` method.
 
 The profile returned is a *CommonProfile*, from which you can retrieve the most common properties that all profiles share.
 But you can also cast the user profile to the appropriate profile according to the provider used for authentication.
