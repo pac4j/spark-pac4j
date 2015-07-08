@@ -32,9 +32,13 @@ import java.util.Set;
 public class SparkWebContext implements WebContext {
 
 	private final Request request;
-	
+
 	private final Response response;
-	
+
+	private int status = 0;
+
+	private String body = null;
+
 	public SparkWebContext(final Request request, final Response response) {
 		this.request = request;
 		this.response = response;
@@ -80,11 +84,13 @@ public class SparkWebContext implements WebContext {
 	@Override
 	public void writeResponseContent(String content) {
 		response.body(content);
+		body = content;
 	}
 
 	@Override
 	public void setResponseStatus(int code) {
 		response.status(code);
+		status = code;
 	}
 
 	@Override
@@ -111,5 +117,13 @@ public class SparkWebContext implements WebContext {
 	@Override
 	public String getFullRequestURL() {
 		return request.url();
+	}
+
+	public String getBody() {
+		return body;
+	}
+
+	public int getStatus() {
+		return status;
 	}
 }

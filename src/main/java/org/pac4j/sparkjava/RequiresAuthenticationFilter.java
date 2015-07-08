@@ -25,6 +25,7 @@ import org.pac4j.core.util.CommonHelper;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
+import static spark.Spark.halt;
 
 /**
  * Filter to protect resources.
@@ -65,6 +66,10 @@ public class RequiresAuthenticationFilter extends ExtraHttpActionHandler impleme
 			Client<Credentials, CommonProfile> client = clients.findClient(this.clientName);
             try {
                 client.redirect(context, true, false);
+                // fix for SAML redirection
+                if (context.getStatus() == 200) {
+                    halt(200, context.getBody());
+                }
             } catch (RequiresHttpAction e) {
                 handle(e);
             }
