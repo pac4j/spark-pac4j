@@ -33,11 +33,11 @@ import spark.Route;
  * @since 1.0.0
  */
 public class CallbackRoute extends ExtraHttpActionHandler implements Route {
-	
+
 	private final Clients clients;
 
 	private String defaultUrl = "/";
-	
+
 	public CallbackRoute(final Clients clients) {
 		this.clients = clients;
 	}
@@ -48,34 +48,36 @@ public class CallbackRoute extends ExtraHttpActionHandler implements Route {
         @SuppressWarnings("rawtypes")
 		final Client client = clients.findClient(context);
         logger.debug("client : {}", client);
-        
+
         final Credentials credentials;
         try {
             credentials = client.getCredentials(context);
         } catch (final RequiresHttpAction e) {
-            handle(e);
+            handle(context, e);
             return null;
         }
         logger.debug("credentials : {}", credentials);
-        
+
         // get user profile
         @SuppressWarnings("unchecked")
 		final CommonProfile profile = (CommonProfile) client.getUserProfile(credentials, context);
         logger.debug("profile : {}", profile);
-        
+
         if (profile != null) {
             // only save profile when it's not null
             UserUtils.setProfile(request, profile);
         }
-        
+
         final String requestedUrl = (String) request.session().attribute(Pac4jConstants.REQUESTED_URL);
         logger.debug("requestedUrl : {}", requestedUrl);
         if (CommonHelper.isNotBlank(requestedUrl)) {
+            // clean saved url
+            request.session().removeAttribute(Pac4jConstants.REQUESTED_URL);
             response.redirect(requestedUrl);
         } else {
             response.redirect(this.defaultUrl);
         }
-        
+
         return null;
 	}
 
