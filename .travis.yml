@@ -1,5 +1,7 @@
 language: java
 
+sudo: false
+
 script: "mvn deploy --settings travis/settings.xml"
 
 jdk:
