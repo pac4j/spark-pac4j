@@ -27,7 +27,7 @@
     <artifactId>spark-pac4j</artifactId>
     <packaging>jar</packaging>
     <name>Sparkjava pac4j</name>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <description>Multi protocols (OAuth, OpenID, CAS, SAML, HTTP, GAE) security library for Sparkjava</description>
     <url>https://github.com/pac4j/spark-pac4j</url>
 
