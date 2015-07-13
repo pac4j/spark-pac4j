@@ -31,9 +31,13 @@ public abstract class ExtraHttpActionHandler {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected void handle(final RequiresHttpAction e) {
+    protected void handle(final SparkWebContext context, final RequiresHttpAction e) {
         int status = e.getCode();
         logger.debug("extra HTTP action required : {}", status);
-        halt(status, e.getMessage());
+        if (status == 200) {
+            halt(200, context.getBody());
+        } else {
+            halt(status, e.getMessage());
+        }
     }
 }

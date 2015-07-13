@@ -71,7 +71,7 @@ public class RequiresAuthenticationFilter extends ExtraHttpActionHandler impleme
                     halt(200, context.getBody());
                 }
             } catch (RequiresHttpAction e) {
-                handle(e);
+                handle(context, e);
             }
         }
 	}
