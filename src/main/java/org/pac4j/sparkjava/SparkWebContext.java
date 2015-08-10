@@ -116,7 +116,14 @@ public class SparkWebContext implements WebContext {
 
 	@Override
 	public String getFullRequestURL() {
-		return request.url();
+		StringBuilder requestURL = new StringBuilder(request.url());
+		String queryString = request.queryString();
+		if (queryString == null) {
+			return requestURL.toString();
+		}
+		else {
+			return requestURL.append('?').append(queryString).toString();
+		}
 	}
 
 	public String getBody() {
