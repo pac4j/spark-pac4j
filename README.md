@@ -191,14 +191,14 @@ A demo with Facebook, Twitter, CAS, form authentication and basic auth authentic
 
 ## Versions
 
-The current version **1.0.3-SNAPSHOT** is under development. It's available on the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j) as a Maven dependency :
+The current version **1.0.4-SNAPSHOT** is under development. It's available on the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j) as a Maven dependency :
 
-The last released version is the **1.0.2** :
+The last released version is the **1.0.3** :
 
     <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>spark-pac4j</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </dependency>
 
 See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes).
