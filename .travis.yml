@@ -2,7 +2,7 @@ language: java
 
 sudo: false
 
-script: "mvn deploy --settings travis/settings.xml"
+script: "mvn package --settings travis/settings.xml"
 
 jdk:
   - oraclejdk8
@@ -11,3 +11,7 @@ env:
   global:
   - secure: "d2CjGM6fovvkJnB9sNdw8+IBEJW0m/WtnG56uVE6nL2UT2s2eAYC461RGmJ/Wf5WsYRg3FR/55vF0JaoSJ0ihvJCVDksevqqZuieF8JgEo9EBGIHn65Qf8nck/TKxMQjgmI/8fFf60SVBYcZQaHFEeHfh0PdG5pqF/f9diXDOPI="
   - secure: "YymQEzOCTqKdBib+YVAJEEvhsMZmmnTgqxO8e0qVsdA+HuyB7kEHH1gHBMk2TlLixbnK0gcE9stZQNdweNZsouYU+sNyR2XeOYmcUvQAPkylx7KPXnvPV/BgIIREVNYCrUAtUxpWKaKXh7aPh3rPYmAwdKX4rLwvpwV4d/el0rs="
+
+after_success:
+- chmod -R 777 ./travis/deploy-to-sonatype.sh
+- ./travis/deploy-to-sonatype.sh
