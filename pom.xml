@@ -26,9 +26,9 @@
     <groupId>org.pac4j</groupId>
     <artifactId>spark-pac4j</artifactId>
     <packaging>jar</packaging>
-    <name>Sparkjava pac4j</name>
+    <name>pac4j implementation for Sparkjava</name>
     <version>1.1.0-SNAPSHOT</version>
-    <description>Multi protocols (OAuth, OpenID, CAS, SAML, HTTP, GAE) security library for Sparkjava</description>
+    <description>Security library for Sparkjava based on pac4j</description>
     <url>https://github.com/pac4j/spark-pac4j</url>
 
     <licenses>
@@ -55,8 +55,8 @@
 
     <properties>
         <spark.version>2.3</spark.version>
-        <pac4j.version>1.7.0</pac4j.version>
-        <java.version>1.7</java.version>
+        <pac4j.version>1.8.2</pac4j.version>
+        <java.version>1.8</java.version>
     </properties>
 
     <dependencies>
@@ -64,6 +64,12 @@
             <groupId>com.sparkjava</groupId>
             <artifactId>spark-core</artifactId>
             <version>${spark.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.pac4j</groupId>

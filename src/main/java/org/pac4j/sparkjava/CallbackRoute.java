@@ -17,75 +17,100 @@ package org.pac4j.sparkjava;
 
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
+import org.pac4j.core.client.IndirectClient;
+import org.pac4j.core.config.Config;
 import org.pac4j.core.context.Pac4jConstants;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
-import org.pac4j.core.profile.CommonProfile;
+import org.pac4j.core.profile.ProfileManager;
+import org.pac4j.core.profile.UserProfile;
 import org.pac4j.core.util.CommonHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
+import java.io.IOException;
+
 /**
- * Route to receive callback calls from identity providers and finish the authentication process.
+ * <p>This route handles the callback from the identity provider to finish the authentication process.</p>
+ * <p>The default url after login (if none has originally be requested) can be defined via the {@link #setDefaultUrl(String)} method.</p>
  *
  * @author Jerome Leleu
  * @since 1.0.0
  */
-public class CallbackRoute extends ExtraHttpActionHandler implements Route {
+public class CallbackRoute implements Route {
 
-	private final Clients clients;
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private String defaultUrl = "/";
+    protected Config config;
 
-	public CallbackRoute(final Clients clients) {
-		this.clients = clients;
-	}
+    protected String defaultUrl = Pac4jConstants.DEFAULT_URL_VALUE;
 
-	@Override
-	public Object handle(Request request, Response response)  throws Exception {
-		final SparkWebContext context = new SparkWebContext(request, response);
-        @SuppressWarnings("rawtypes")
-		final Client client = clients.findClient(context);
-        logger.debug("client : {}", client);
+    public CallbackRoute(final Config config) {
+        this.config = config;
+    }
+
+    public CallbackRoute(final Config config, final String defaultUrl) {
+        this.config = config;
+        this.defaultUrl = defaultUrl;
+    }
+
+    @Override
+    public Object handle(Request request, Response response) throws Exception {
+
+        CommonHelper.assertNotNull("config", config);
+        final WebContext context = new SparkWebContext(request, response, config.getSessionStore());
+        CommonHelper.assertNotNull("config.httpActionAdapter", config.getHttpActionAdapter());
+
+        final Clients clients = config.getClients();
+        CommonHelper.assertNotNull("clients", clients);
+        final Client client = clients.findClient(context);
+        logger.debug("client: {}", client);
+        CommonHelper.assertNotNull("client", client);
+        CommonHelper.assertTrue(client instanceof IndirectClient, "only indirect clients are allowed on the callback url");
 
         final Credentials credentials;
         try {
             credentials = client.getCredentials(context);
         } catch (final RequiresHttpAction e) {
-            handle(context, e);
-            return null;
+            return config.getHttpActionAdapter().adapt(e.getCode(), context);
         }
-        logger.debug("credentials : {}", credentials);
+        logger.debug("credentials: {}", credentials);
 
-        // get user profile
-        @SuppressWarnings("unchecked")
-		final CommonProfile profile = (CommonProfile) client.getUserProfile(credentials, context);
-        logger.debug("profile : {}", profile);
+        final UserProfile profile = client.getUserProfile(credentials, context);
+        logger.debug("profile: {}", profile);
+        saveUserProfile(context, profile);
+        redirectToOriginallyRequestedUrl(context, response);
 
+        return null;
+    }
+
+    protected void saveUserProfile(final WebContext context, final UserProfile profile) {
+        final ProfileManager manager = new ProfileManager(context);
         if (profile != null) {
-            // only save profile when it's not null
-            UserUtils.setProfile(request, profile);
+            manager.save(true, profile);
         }
+    }
 
-        final String requestedUrl = (String) request.session().attribute(Pac4jConstants.REQUESTED_URL);
-        logger.debug("requestedUrl : {}", requestedUrl);
+    protected void redirectToOriginallyRequestedUrl(final WebContext context, final Response response) throws IOException {
+        final String requestedUrl = (String) context.getSessionAttribute(Pac4jConstants.REQUESTED_URL);
+        logger.debug("requestedUrl: {}", requestedUrl);
         if (CommonHelper.isNotBlank(requestedUrl)) {
-            // clean saved url
-            request.session().removeAttribute(Pac4jConstants.REQUESTED_URL);
+            context.setSessionAttribute(Pac4jConstants.REQUESTED_URL, null);
             response.redirect(requestedUrl);
         } else {
             response.redirect(this.defaultUrl);
         }
+    }
 
-        return null;
-	}
+    public String getDefaultUrl() {
+        return this.defaultUrl;
+    }
 
-	public String getDefaultUrl() {
-		return defaultUrl;
-	}
-
-	public void setDefaultUrl(String defaultUrl) {
-		this.defaultUrl = defaultUrl;
-	}
+    public void setDefaultUrl(final String defaultUrl) {
+        this.defaultUrl = defaultUrl;
+    }
 }

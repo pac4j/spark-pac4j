@@ -15,64 +15,178 @@
  */
 package org.pac4j.sparkjava;
 
-import org.pac4j.core.client.Client;
-import org.pac4j.core.client.Clients;
+import org.pac4j.core.authorization.AuthorizationChecker;
+import org.pac4j.core.authorization.DefaultAuthorizationChecker;
+import org.pac4j.core.client.*;
+import org.pac4j.core.config.Config;
+import org.pac4j.core.context.HttpConstants;
 import org.pac4j.core.context.Pac4jConstants;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
-import org.pac4j.core.profile.CommonProfile;
+import org.pac4j.core.exception.TechnicalException;
+import org.pac4j.core.matching.DefaultMatchingChecker;
+import org.pac4j.core.matching.MatchingChecker;
+import org.pac4j.core.profile.ProfileManager;
+import org.pac4j.core.profile.UserProfile;
 import org.pac4j.core.util.CommonHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
-import static spark.Spark.halt;
+
+import java.util.List;
 
 /**
- * Filter to protect resources.
+ * <p>This filter protects a resource (authentication + authorization).</p>
+ * <ul>
+ *  <li>If a stateful / indirect client is used, it relies on the session to get the user profile (after the {@link CallbackRoute} has terminated the authentication process)</li>
+ *  <li>If a stateless / direct client is used, it validates the provided credentials from the request and retrieves the user profile if the authentication succeeds.</li>
+ * </ul>
+ * <p>Then, authorizations are checked before accessing the resource.</p>
+ * <p>Forbidden or unauthorized errors can be returned. An authentication process can be started (redirection to the identity provider) in case of an indirect client.</p>
+ * <p>The configuration can be provided via constructors: {@link #RequiresAuthenticationFilter(Config, String)}, {@link #RequiresAuthenticationFilter(Config, String, String)} and
+ * {@link #RequiresAuthenticationFilter(Config, String, String, String)}.</p>
  *
  * @author Jerome Leleu
  * @since 1.0.0
  */
-public class RequiresAuthenticationFilter extends ExtraHttpActionHandler implements Filter {
+public class RequiresAuthenticationFilter implements Filter {
 
-	private final Clients clients;
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private final String clientName;
+    protected ClientFinder clientFinder = new DefaultClientFinder();
 
-	public RequiresAuthenticationFilter(final Clients clients, final String clientName) {
-		this.clients = clients;
-		this.clientName = clientName;
-	}
+    protected AuthorizationChecker authorizationChecker = new DefaultAuthorizationChecker();
 
-	@Override
-	public void handle(Request request, Response response) {
-        final CommonProfile profile = UserUtils.getProfile(request);
-        logger.debug("profile: {}", profile);
+    protected MatchingChecker matchingChecker = new DefaultMatchingChecker();
 
-        // null profile, not authenticated
-        if (profile == null) {
-            // no authentication tried -> redirect to provider
-            // keep the current url
-            String requestedUrl = request.url();
-            String queryString = request.queryString();
-            if (CommonHelper.isNotBlank(queryString)) {
-                requestedUrl += "?" + queryString;
-            }
-            logger.debug("requestedUrl: {}", requestedUrl);
-            request.session().attribute(Pac4jConstants.REQUESTED_URL, requestedUrl);
-            // compute and perform the redirection
-            final SparkWebContext context = new SparkWebContext(request, response);
-			@SuppressWarnings("unchecked")
-			Client<Credentials, CommonProfile> client = clients.findClient(this.clientName);
-            try {
-                client.redirect(context, true, false);
-                // fix for SAML redirection
-                if (context.getStatus() == 200) {
-                    halt(200, context.getBody());
+    protected Config config;
+
+    protected String clientName;
+
+    protected String authorizerName;
+
+    protected String matcherName;
+
+    public RequiresAuthenticationFilter(final Config config, final String clientName) {
+        this(config, clientName, null, null);
+    }
+
+    public RequiresAuthenticationFilter(final Config config, final String clientName, final String authorizerName) {
+        this(config, clientName, authorizerName, null);
+    }
+
+    public RequiresAuthenticationFilter(final Config config, final String clientName, final String authorizerName, final String matcherName) {
+        this.config = config;
+        this.clientName = clientName;
+        this.authorizerName = authorizerName;
+        this.matcherName = matcherName;
+    }
+
+    @Override
+    public void handle(Request request, Response response) {
+
+        CommonHelper.assertNotNull("config", config);
+        final WebContext context = new SparkWebContext(request, response, config.getSessionStore());
+        CommonHelper.assertNotNull("config.httpActionAdapter", config.getHttpActionAdapter());
+
+        logger.debug("url: {}", context.getFullRequestURL());
+        logger.debug("matcherName: {}", matcherName);
+        if (matchingChecker.matches(context, this.matcherName, config.getMatchers())) {
+
+            final Clients configClients = config.getClients();
+            CommonHelper.assertNotNull("configClients", configClients);
+            logger.debug("clientName: {}", clientName);
+            final List<Client> currentClients = clientFinder.find(configClients, context, this.clientName);
+            logger.debug("currentClients: {}", currentClients);
+
+            final boolean useSession = useSession(context, currentClients);
+            logger.debug("useSession: {}", useSession);
+            final ProfileManager manager = new ProfileManager(context);
+            UserProfile profile = manager.get(useSession);
+            logger.debug("profile: {}", profile);
+
+            // no profile and some current clients
+            if (profile == null && currentClients != null && currentClients.size() > 0) {
+                // loop on all clients searching direct ones to perform authentication
+                for (final Client currentClient : currentClients) {
+                    if (currentClient instanceof DirectClient) {
+                        logger.debug("Performing authentication for client: {}", currentClient);
+                        final Credentials credentials;
+                        try {
+                            credentials = currentClient.getCredentials(context);
+                            logger.debug("credentials: {}", credentials);
+                        } catch (final RequiresHttpAction e) {
+                            throw new TechnicalException("Unexpected HTTP action", e);
+                        }
+                        profile = currentClient.getUserProfile(credentials, context);
+                        logger.debug("profile: {}", profile);
+                        if (profile != null) {
+                            manager.save(useSession, profile);
+                            break;
+                        }
+                    }
                 }
-            } catch (RequiresHttpAction e) {
-                handle(context, e);
             }
+
+            if (profile != null) {
+                logger.debug("authorizerName: {}", authorizerName);
+                if (authorizationChecker.isAuthorized(context, profile, authorizerName, config.getAuthorizers())) {
+                    logger.debug("authenticated and authorized -> grant access");
+                } else {
+                    logger.debug("forbidden");
+                    forbidden(context, currentClients, profile);
+                }
+            } else {
+                if (startAuthentication(context, currentClients)) {
+                    logger.debug("Starting authentication");
+                    saveRequestedUrl(context, currentClients);
+                    redirectToIdentityProvider(context, currentClients);
+                } else {
+                    logger.debug("unauthorized");
+                    unauthorized(context, currentClients);
+
+                }
+            }
+
+        } else {
+
+            logger.debug("no matching for this request -> grant access");
         }
-	}
+    }
+
+    protected boolean useSession(final WebContext context, final List<Client> currentClients) {
+        return currentClients == null || currentClients.size() == 0 || currentClients.get(0) instanceof IndirectClient;
+    }
+
+    protected void forbidden(final WebContext context, final List<Client> currentClients, final UserProfile profile) {
+        config.getHttpActionAdapter().adapt(HttpConstants.FORBIDDEN, context);
+    }
+
+    protected boolean startAuthentication(final WebContext context, final List<Client> currentClients) {
+        return currentClients != null && currentClients.size() > 0 && currentClients.get(0) instanceof IndirectClient;
+    }
+
+    protected void saveRequestedUrl(final WebContext context, final List<Client> currentClients) {
+        final String requestedUrl = context.getFullRequestURL();
+        logger.debug("requestedUrl: {}", requestedUrl);
+        context.setSessionAttribute(Pac4jConstants.REQUESTED_URL, requestedUrl);
+    }
+
+    protected void redirectToIdentityProvider(final WebContext context, final List<Client> currentClients) {
+        try {
+            final IndirectClient currentClient = (IndirectClient) currentClients.get(0);
+            currentClient.redirect(context, true);
+            config.getHttpActionAdapter().adapt(((SparkWebContext) context).getStatus(), context);
+        } catch (final RequiresHttpAction e) {
+            logger.debug("extra HTTP action required: {}", e.getCode());
+            config.getHttpActionAdapter().adapt(e.getCode(), context);
+        }
+    }
+
+    protected void unauthorized(final WebContext context, final List<Client> currentClients) {
+        config.getHttpActionAdapter().adapt(HttpConstants.UNAUTHORIZED, context);
+    }
 }
