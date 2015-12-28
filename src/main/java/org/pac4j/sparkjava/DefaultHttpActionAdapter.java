@@ -43,6 +43,8 @@ public class DefaultHttpActionAdapter implements HttpActionAdapter {
             halt(HttpConstants.FORBIDDEN, "forbidden");
         } else if (code == HttpConstants.OK) {
             halt(HttpConstants.OK, webContext.getBody());
+        } else if (code == HttpConstants.TEMP_REDIRECT) {
+            webContext.getSparkResponse().redirect(webContext.getLocation());
         }
         return null;
     }

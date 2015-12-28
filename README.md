@@ -1,89 +1,180 @@
-## What is the spark-pac4j library ? [![Build Status](https://travis-ci.org/pac4j/spark-pac4j.png?branch=master)](https://travis-ci.org/pac4j/spark-pac4j)
+<p align="center">
+  <img src="https://pac4j.github.io/pac4j/img/logo-spark.png" width="300" />
+</p>
 
-The **spark-pac4j** library is a multi-protocols authentication client for [Sparkjava](http://sparkjava.com).
+The `spark-pac4j` project is an **easy and powerful security library for [Sparkjava](http://sparkjava.com)** applications which supports authentication and authorization, but also application logout and advanced features like CSRF protection. It's available under the Apache 2 license and based on the **[pac4j security engine](https://github.com/pac4j/pac4j)**.
 
-It supports these 7 authentication mechanisms on client side (stateful, redirection back and forth to an identity provider for login):
+It supports most authentication mechanisms, called [**clients**](https://github.com/pac4j/pac4j/wiki/Clients):
 
-1. OAuth (1.0 & 2.0)
-2. CAS (1.0, 2.0, SAML, logout & proxy)
-3. HTTP (form & basic auth authentications)
-4. OpenID
-5. SAML (2.0)
-6. GAE UserService
-7. OpenID Connect (1.0).
+- **indirect / stateful clients** are for UI when the user authenticates once at an external provider (like Facebook, a CAS server...) or via a local form (or basic auth popup)  
+- **direct / stateless clients** are for web services when credentials (like basic auth, tokens...) are passed for each HTTP request.
 
-It's available under the Apache 2 license and based on the [pac4j](https://github.com/pac4j/pac4j) library.
+See the [authentication flows](https://github.com/pac4j/pac4j/wiki/Authentication-flows).
 
+| The authentication mechanism you want | The `pac4j-*` submodule(s) you must use
+|---------------------------------------|----------------------------------------
+| OAuth (1.0 & 2.0): Facebook, Twitter, Google, Yahoo, LinkedIn, Github... | `pac4j-oauth`
+| CAS (1.0, 2.0, 3.0, SAML, logout, proxy) | `pac4j-cas`
+| SAML (2.0) | `pac4j-saml`
+| OpenID Connect (1.0) | `pac4j-oidc`
+| HTTP (form, basic auth, IP, header, cookie, GET/POST parameter)<br />+<br />JWT<br />or LDAP<br />or Relational DB<br />or MongoDB<br />or Stormpath<br />or CAS REST API| `pac4j-http`<br />+<br />`pac4j-jwt`<br />or `pac4j-ldap`<br />or `pac4j-sql`<br />or `pac4j-mongo`<br />or `pac4j-stormpath`<br />or `pac4j-cas`
+| Google App Engine UserService | `pac4j-gae`
+| OpenID | `pac4j-openid`
 
-## Providers supported
-
-<table>
-<tr><th>Provider</th><th>Protocol</th><th>Maven dependency</th><th>Client class</th><th>Profile class</th></tr>
-<tr><td>CAS server</td><td>CAS</td><td>pac4j-cas</td><td>CasClient & CasProxyReceptor</td><td>CasProfile</td></tr>
-<tr><td>CAS server using OAuth Wrapper</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>CasOAuthWrapperClient</td><td>CasOAuthWrapperProfile</td></tr>
-<tr><td>DropBox</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>DropBoxClient</td><td>DropBoxProfile</td></tr>
-<tr><td>Facebook</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>FacebookClient</td><td>FacebookProfile</td></tr>
-<tr><td>GitHub</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>GitHubClient</td><td>GitHubProfile</td></tr>
-<tr><td>Google</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>Google2Client</td><td>Google2Profile</td></tr>
-<tr><td>LinkedIn</td><td>OAuth 1.0 & 2.0</td><td>pac4j-oauth</td><td>LinkedInClient & LinkedIn2Client</td><td>LinkedInProfile & LinkedIn2Profile</td></tr>
-<tr><td>Twitter</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>TwitterClient</td><td>TwitterProfile</td></tr>
-<tr><td>Windows Live</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>WindowsLiveClient</td><td>WindowsLiveProfile</td></tr>
-<tr><td>WordPress</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>WordPressClient</td><td>WordPressProfile</td></tr>
-<tr><td>Yahoo</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>YahooClient</td><td>YahooProfile</td></tr>
-<tr><td>PayPal</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>PayPalClient</td><td>PayPalProfile</td></tr>
-<tr><td>Vk</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>VkClient</td><td>VkProfile</td></tr>
-<tr><td>Foursquare</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>FoursquareClient</td><td>FoursquareProfile</td></tr>
-<tr><td>Bitbucket</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>BitbucketClient</td><td>BitbucketProfile</td></tr>
-<tr><td>ORCiD</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>OrcidClient</td><td>OrcidProfile</td></tr>
-<tr><td>Strava</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>StravaClient</td><td>StravaProfile</td></tr>
-<tr><td>Web sites with basic auth authentication</td><td>HTTP</td><td>pac4j-http</td><td>BasicAuthClient</td><td>HttpProfile</td></tr>
-<tr><td>Web sites with form authentication</td><td>HTTP</td><td>pac4j-http</td><td>FormClient</td><td>HttpProfile</td></tr>
-<tr><td>Google - Deprecated</td><td>OpenID</td><td>pac4j-openid</td><td>GoogleOpenIdClient</td><td>GoogleOpenIdProfile</td></tr>
-<tr><td>Yahoo</td><td>OpenID</td><td>pac4j-openid</td><td>YahooOpenIdClient</td><td>YahooOpenIdProfile</td></tr>
-<tr><td>SAML Identity Provider</td><td>SAML 2.0</td><td>pac4j-saml</td><td>Saml2Client</td><td>Saml2Profile</td></tr>
-<tr><td>Google App Engine User Service</td><td>Gae User Service Mechanism</td><td>pac4j-gae</td><td>GaeUserServiceClient</td><td>GaeUserServiceProfile</td></tr>
-<tr><td>OpenID Connect Provider</td><td>OpenID Connect 1.0</td><td>pac4j-oidc</td><td>OidcClient</td><td>OidcProfile</td></tr>
-</table>
+It also supports many authorization checks, called [**authorizers**](https://github.com/pac4j/pac4j/wiki/Authorizers) available in the `pac4j-core` (and `pac4j-http`) submodules: role / permission checks, IP check, profile type verification, HTTP method verification... as well as regular security protections for CSRF, XSS, cache control, Xframe...
 
 
-## Technical description
+## How to use it?
 
-This library has **only 5 classes** :
+First, you need to add a dependency on this library as well as on the appropriate `pac4j` submodules. Then, you must define the [**clients**](https://github.com/pac4j/pac4j/wiki/Clients) for authentication and the [**authorizers**](https://github.com/pac4j/pac4j/wiki/Authorizers) to check authorizations.
 
-1. the **ExtraHttpActionHandler** class handles extra HTTP actions
-2. the **RequiresAuthenticationFilter** class protects resources
-3. the **CallbackRoute** class handles identity providers callbacks to finish the authentication process
-4. the **SparkWebContext** is a specific web context for Sparkjava
-5. the **UserUtils** is an helper class to know if the user is authenticated, his profile and log out him.
+Define the `CallbackRoute` to finish authentication processes if you use indirect clients (like Facebook).
 
-and is based on the <i>pac4j-*</i> libraries.
+Use the `RequiresAuthenticationFilter` to secure the urls of your web application (using the `clientName` parameter for authentication and the `authorizerName` parameter for authorizations).
 
-Learn more by browsing the [spark-pac4j Javadoc](http://www.pac4j.org/apidocs/spark-pac4j/index.html) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/index.html).
+Just follow these easy steps:
 
 
-## How to use it ?
+### Add the required dependencies (`spark-pac4j` + `pac4j-*` libraries)
 
-### Add the required dependencies
+You need to add a dependency on the `spark-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.1.0-SNAPSHOT**) as well as on the appropriate `pac4j` submodules (<em>groupId</em>: **org.pac4j**, *version*: **1.8.2**): the `pac4j-oauth` dependency for OAuth support, the `pac4j-cas` dependency for CAS support, the `pac4j-ldap` module for LDAP authentication, ...
 
-If you want to use a specific client support, you need to add the appropriate Maven dependency in the *pom.xml* file :
+All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
-* for OAuth support, the *pac4j-oauth* dependency is required
-* for CAS support, the *pac4j-cas* dependency is required
-* for HTTP support, the *pac4j-http* dependency is required
-* for OpenID support, the *pac4j-openid* dependency is required
-* for SAML support, the *pac4j-saml* dependency is required
-* for Google App Engine support, the *pac4j-gae* dependency is required
-* for OpenID Connect support, the *pac4j-oidc* dependency is required.
+### Define the configuration (`Config` + `Clients` + `XXXClient` + `Authorizer`)
 
-For example, to add OAuth support, add the following XML snippet :
+Each authentication mechanism (Facebook, Twitter, a CAS server...) is defined by a client (implementing the `org.pac4j.core.client.Client` interface). All clients must be gathered in a `org.pac4j.core.client.Clients` class.
 
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-oauth</artifactId>
-      <version>1.7.0</version>
-    </dependency>
+All the `Clients` and the authorizers must be gathered in a `Config` object (which can be itself build in a `org.pac4j.core.config.ConfigFactory`).  
+For example:
 
-As these snapshot dependencies are only available in the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j/), the appropriate repository must be added in the *pom.xml* file also :
+    final OidcClient oidcClient = new OidcClient();
+    oidcClient.setClientID("id");
+    oidcClient.setSecret("secret");
+    oidcClient.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration");
+    oidcClient.setUseNonce(true);
+    oidcClient.addCustomParam("prompt", "consent");
+
+    final SAML2ClientConfiguration cfg = new SAML2ClientConfiguration("resource:samlKeystore.jks", "pac4j-demo-passwd", "pac4j-demo-passwd", "resource:metadata-okta.xml");
+    cfg.setMaximumAuthenticationLifetime(3600);
+    cfg.setServiceProviderEntityId("http://localhost:8080/callback?client_name=SAML2Client");
+    cfg.setServiceProviderMetadataPath("sp-metadata.xml");
+    final SAML2Client saml2Client = new SAML2Client(cfg);
+
+    final FacebookClient facebookClient = new FacebookClient("fbId", "fbSecret");
+    final TwitterClient twitterClient = new TwitterClient("twId", "twSecret");
+     
+    final FormClient formClient = new FormClient("http://localhost:8080/theForm.jsp", new SimpleTestUsernamePasswordAuthenticator());
+    final IndirectBasicAuthClient basicAuthClient = new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
+     
+    final CasClient casClient = new CasClient("http://mycasserver/login");
+     
+    final ParameterClient parameterClient = new ParameterClient("token", new JwtAuthenticator("salt"));
+     
+    final Clients clients = new Clients("http://localhost:8080/callback", oidcClient, saml2Client, facebookClient, twitterClient, formClient, basicAuthClient, casClient, parameterClient);
+     
+    final Config config = new Config(clients);
+    config.addAuthorizer("admin", new RequireAnyRoleAuthorizer("ROLE_ADMIN"));
+    config.addAuthorizer("custom", new CustomAuthorizer());
+    config.setHttpActionAdapter(new DemoHttpActionAdapter(templateEngine));
+
+"http://localhost:8080/callback" is the url of the callback endpoint (see below). It may not be defined for REST support / direct clients only.
+
+Notice the `config.setHttpActionAdapter` call to define the way to handle specific HTTP actions (like redirections, forbidden / unauthorized pages). The only available implementation is currently the `DefaultHttpActionAdapter`, but you can subclass it to define your own HTTP 401 / 403 error pages for example.
+
+You can also use a specific `SessionStore` by defining it via the `Config.setSessionStore(sessionStore)` method.
+
+
+### Define the callback endpoint (only for stateful / indirect authentication mechanisms)
+
+Indirect clients rely on external identity providers (like Facebook) and thus require to define a callback endpoint in the application where the user will be redirected after login at the identity provider. For REST support / direct clients only, this callback endpoint is not necessary.
+
+    final Route callback = new CallbackRoute(config);
+    get("/callback", callback);
+    post("/callback", callback);
+
+The `defaultUrl` parameter of this route defines where the user will be redirected after login if no url was originally requested (/ by default).
+
+
+### Protect an url (authentication + authorization)
+
+You can protect an url and require the user to be authenticated by a client (and optionally have the appropriate authorizations) by using the `RequiresAuthenticationFilter`:
+
+    before("/facebook", new RequiresAuthenticationFilter(config, "FacebookClient", "admin"));
+
+Several constructors are available:
+
+- `RequiresAuthenticationFilter(final Config config, final String clientName)`
+- `RequiresAuthenticationFilter(final Config config, final String clientName, final String authorizerName)`
+- `RequiresAuthenticationFilter(final Config config, final String clientName, final String authorizerName, final String matcherName)`
+
+with the following parameters:
+
+- `clientName` (optional): the list of client names (separated by commas) used for authentication. If the user is not authenticated, direct clients are tried successively then if the user is still not authenticated and if the first client is an indirect one, this client is used to start the authentication. Otherwise, a 401 HTTP error is returned. If the *client_name* request parameter is provided, only the matching client is selected
+- `configFactory`: the factory to initialize the configuration: clients and authorizers (only one filter needs to define it as the configuration is shared)
+- `authorizerName` (optional): the list of authorizer names (separated by commas) used to check authorizations. If the user is not authorized, a 403 HTTP error is returned. By default (if blank), the user only requires to be authenticated to access the resource. The following authorizers are available by default:
+  * `hsts` to use the `StrictTransportSecurityHeader` authorizer, `nosniff` for `XContentTypeOptionsHeader`, `noframe` for `XFrameOptionsHeader `, `xssprotection` for `XSSProtectionHeader `, `nocache` for `CacheControlHeader ` or `securityHeaders` for the five previous authorizers
+  * `csrfToken` to use the `CsrfTokenGeneratorAuthorizer` with the `DefaultCsrfTokenGenerator` (it generates a CSRF token and adds it to the request and save it in the `pac4jCsrfToken` cookie), `csrfCheck` to check that this previous token has been sent as the `pac4jCsrfToken` header or parameter in a POST request and `csrf` to use both previous authorizers.
+- `matcherName` (optional): the list of matcher names (separated by commas) that the request must satisfy to apply authentication / authorization. By default, all requests are checked
+
+
+### Get the user profile
+
+You can test if the user is authenticated using the `ProfileManager.isAuthenticated()` method or get the user profile using the `ProfileManager.get(true)` method (`false` not to use the session, but only the current HTTP request):
+
+    final SparkWebContext context = new SparkWebContext(request, response);
+    final ProfileManager manager = new ProfileManager(context);
+    final UserProfile profile = manager.get(true);
+
+The retrieved profile is at least a `CommonProfile`, from which you can retrieve the most common properties that all profiles share. But you can also cast the user profile to the appropriate profile according to the provider used for authentication. For example, after a Facebook authentication:
+ 
+    FacebookProfile facebookProfile = (FacebookProfile) commonProfile;
+
+
+### Logout
+
+You can log out the current authenticated user using the `ApplicationLogoutFilter`:
+
+    get("/logout", new ApplicationLogoutRoute(config));
+
+To perfom the logout, you must call the /logout url. A blank page is displayed by default unless an *url* request parameter is provided. In that case, the user will be redirected to this specified url (if it matches the logout url pattern defined) or to the default logout url otherwise.
+
+The following parameters can be defined:
+
+- `defaultUrl` (optional): the default logout url if the provided *url* parameter does not match the `logoutUrlPattern` (by default: /)
+- `logoutUrlPattern` (optional): the logout url pattern that the logout url must match (it's a security check, only relative urls are allowed by default).
+
+
+## Migration guide (1.0 -> 1.1)
+
+Authorizations are now handled by the library so the `ClientFactory` can now longer be used and is replaced by a `ConfigFactory` which builds a `Config` which gathers clients (for authentication) and authorizers (for authorizations).
+
+The application logout process can be managed with the `ApplicationLogoutFilter`.
+
+
+## Demo
+
+The demo webapp: [spark-pac4j-demo](https://github.com/pac4j/spark-pac4j-demo) is available for tests and implement many authentication mechanisms: Facebook, Twitter, form, basic auth, CAS, SAML, OpenID Connect, JWT...
+
+
+## Release notes
+
+See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes). Learn more by browsing the [spark-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/spark-pac4j/1.1.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.8.2/index.html).
+
+
+## Need help?
+
+If you have any question, please use the following mailing lists:
+
+- [pac4j users](https://groups.google.com/forum/?hl=en#!forum/pac4j-users)
+- [pac4j developers](https://groups.google.com/forum/?hl=en#!forum/pac4j-dev)
+
+
+## Development
+
+The version 1.1.0-SNAPSHOT is under development.
+
+Maven artifacts are built via Travis: [![Build Status](https://travis-ci.org/pac4j/spark-pac4j.png?branch=master)](https://travis-ci.org/pac4j/spark-pac4j) and available in the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j). This repository must be added in the Maven *pom.xml* file for example:
 
     <repositories>
       <repository>
@@ -98,115 +189,3 @@ As these snapshot dependencies are only available in the [Sonatype snapshots rep
         </snapshots>
       </repository>
     </repositories>
-
-### Define the clients
-
-All the clients used to communicate with various providers (Facebook, Twitter, a CAS server...) must be defined. For example :
-
-    public class ClientsBuilder {
-
-	  public static Clients build() {
-		final OidcClient oidcClient = new OidcClient();
-        oidcClient.setClientID("oidcId");
-        oidcClient.setSecret("oidcSecret");
-        oidcClient.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration");
-        oidcClient.addCustomParam("prompt", "consent");
-
-        final Saml2Client saml2Client = new Saml2Client();
-        saml2Client.setKeystorePath("resource:samlKeystore.jks");
-        saml2Client.setKeystorePassword("pac4j-demo-passwd");
-        saml2Client.setPrivateKeyPassword("pac4j-demo-passwd");
-        saml2Client.setIdpMetadataPath("resource:testshib-providers.xml");
-
-        final FacebookClient facebookClient = new FacebookClient("fwKey", "fwSecret");
-        final TwitterClient twitterClient = new TwitterClient("twKey", "twSecret");
-
-        final FormClient formClient = new FormClient("http://localhost:8080/theForm",
-                new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator());
-        final BasicAuthClient basicAuthClient = new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator(), new UsernameProfileCreator());
-
-        final CasClient casClient = new CasClient();
-        casClient.setCasLoginUrl("http://localhost:8888/cas/login");
-
-        final Clients clients = new Clients("http://localhost:8080/callback", oidcClient, saml2Client, facebookClient,
-                twitterClient, formClient, basicAuthClient, casClient);
-        return clients;
-	  }
-    }
-
-### Define the "callback filter"
-
-To handle callback calls from providers, you need to define the appropriate *org.pac4j.sparkjava.CallbackRoute* on the /callback url for example:
-
-    final Route callback = new CallbackRoute(clients);
-    get("/callback", callback);
-    post("/callback", callback);
-
-### Protect the urls
-
-You can protect your urls and force the user to be authenticated by a client by using the appropriate *org.pac4j.sparkjava.RequiresAuthenticationFilter* on the specified url.
-For example, for Facebook :
-
-    before("/facebook", new RequiresAuthenticationFilter(clients, "FacebookClient"));
-
-### Get redirection urls
-
-You can also explicitely compute a redirection url to a provider for authentication by using the *getRedirectionUrl* method of the client. For example with Facebook :
-
-    map.put("facebookUrl", clients.findClient(FacebookClient.class).getRedirectionUrl(context));
-
-### Get the user profile
-
-After successful authentication, you can get the user profile using the `UserUtils.getProfile()` method.
-
-The profile returned is a *CommonProfile*, from which you can retrieve the most common properties that all profiles share.
-But you can also cast the user profile to the appropriate profile according to the provider used for authentication.
-For example, after a Facebook authentication :
-
-    // facebook profile
-    FacebookProfile facebookProfile = (FacebookProfile) commonProfile;
-
-Or for all the OAuth 1.0/2.0 profiles, to get the access token :
-
-    OAuth10Profile oauthProfile = (OAuth10Profile) commonProfile
-    String accessToken = oauthProfile.getAccessToken();
-    // or
-    String accessToken = facebookProfile.getAccessToken();
-
-### Logout
-
-You can log out the current user by using the `UserUtils.logout()` method:
-
-    get("/logout", (rq, rs) -> {
-      UserUtils.logout(rq);
-      rs.redirect("/");
-      return null;
-    });
-
-
-## Demo
-
-A demo with Facebook, Twitter, CAS, form authentication and basic auth authentication providers is available with [spark-pac4j-demo](https://github.com/pac4j/spark-pac4j-demo).
-
-
-## Versions
-
-The current version **1.0.4-SNAPSHOT** is under development. It's available on the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j) as a Maven dependency :
-
-The last released version is the **1.0.3** :
-
-    <dependency>
-        <groupId>org.pac4j</groupId>
-        <artifactId>spark-pac4j</artifactId>
-        <version>1.0.3</version>
-    </dependency>
-
-See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes).
-
-
-## Contact
-
-If you have any question, please use the following mailing lists :
-- [pac4j users](https://groups.google.com/forum/?hl=en#!forum/pac4j-users)
-- [pac4j developers](https://groups.google.com/forum/?hl=en#!forum/pac4j-dev)
-

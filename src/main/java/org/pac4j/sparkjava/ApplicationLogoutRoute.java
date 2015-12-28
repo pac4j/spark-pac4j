@@ -26,6 +26,8 @@ import spark.Route;
 
 import java.util.regex.Pattern;
 
+import static spark.Spark.halt;
+
 /**
  * <p>This route handles the application logout process.</p>
  * <p>After logout, the user is redirected to the url defined by the <i>url</i> parameter. If no url is provided, a blank page is displayed. If the url does not match the pattern, the default url is used.</p>
@@ -67,6 +69,8 @@ public class ApplicationLogoutRoute implements Route {
             } else {
                 response.redirect(this.defaultUrl);
             }
+        } else {
+            halt(200, "");
         }
 
         return null;
