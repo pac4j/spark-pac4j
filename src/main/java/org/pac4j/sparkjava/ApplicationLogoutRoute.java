@@ -1,79 +1,62 @@
-/*
-  Copyright 2015 - 2015 pac4j organization
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.Pac4jConstants;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.profile.ProfileManager;
+import org.pac4j.core.engine.ApplicationLogoutLogic;
+import org.pac4j.core.engine.DefaultApplicationLogoutLogic;
 import org.pac4j.core.util.CommonHelper;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
-import java.util.regex.Pattern;
-
-import static spark.Spark.halt;
-
 /**
- * <p>This route handles the application logout process.</p>
- * <p>After logout, the user is redirected to the url defined by the <i>url</i> parameter. If no url is provided, a blank page is displayed. If the url does not match the pattern, the default url is used.</p>
- * <p>The default url can be defined via the {@link #setDefaultUrl(String)} method.</p>
- * <p>The logout url pattern can be defined via the {@link #setLogoutUrlPattern(String)} method.</p>
+ * <p>This route handles the application logout process, based on the {@link #applicationLogoutLogic}.</p>
+ *
+ * <p>The configuration can be provided via the following parameters: <code>config</code> (the security configuration),
+ * <code>defaultUrl</code> (default logourl url) and <code>logoutUrlPattern</code> (pattern that logout urls must match).</p>
  *
  * @author Jerome Leleu
  * @since 1.1.0
  */
 public class ApplicationLogoutRoute implements Route {
 
-    protected Config config;
+    private ApplicationLogoutLogic<Object, SparkWebContext> applicationLogoutLogic = new DefaultApplicationLogoutLogic<>();
 
-    protected String defaultUrl = Pac4jConstants.DEFAULT_URL_VALUE;
+    private Config config;
 
-    protected String logoutUrlPattern = Pac4jConstants.DEFAULT_LOGOUT_URL_PATTERN_VALUE;
+    private String defaultUrl;
+
+    private String logoutUrlPattern;
 
     public ApplicationLogoutRoute(final Config config) {
-        this.config = config;
+        this(config, null);
     }
 
     public ApplicationLogoutRoute(final Config config, final String defaultUrl) {
+        this(config, defaultUrl, null);
+    }
+
+    public ApplicationLogoutRoute(final Config config, final String defaultUrl, final String logoutUrlPattern) {
         this.config = config;
         this.defaultUrl = defaultUrl;
+        this.logoutUrlPattern = logoutUrlPattern;
     }
 
     @Override
-    public Object handle(Request request, Response response) throws Exception {
+    public Object handle(final Request request, final Response response) throws Exception {
 
         CommonHelper.assertNotNull("config", config);
-        final WebContext context = new SparkWebContext(request, response, config.getSessionStore());
-        final ProfileManager manager = new ProfileManager(context);
-        manager.logout();
+        final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
 
-        final String url = context.getRequestParameter(Pac4jConstants.URL);
-        if (url != null) {
-            if (Pattern.matches(this.logoutUrlPattern, url)) {
-                response.redirect(url);
-            } else {
-                response.redirect(this.defaultUrl);
-            }
-        } else {
-            halt(200, "");
-        }
-
+        applicationLogoutLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.logoutUrlPattern);
         return null;
+    }
+
+    public ApplicationLogoutLogic<Object, SparkWebContext> getApplicationLogoutLogic() {
+        return applicationLogoutLogic;
+    }
+
+    public void setApplicationLogoutLogic(ApplicationLogoutLogic<Object, SparkWebContext> applicationLogoutLogic) {
+        this.applicationLogoutLogic = applicationLogoutLogic;
     }
 
     public String getDefaultUrl() {
@@ -88,7 +71,7 @@ public class ApplicationLogoutRoute implements Route {
         return logoutUrlPattern;
     }
 
-    public void setLogoutUrlPattern(String logoutUrlPattern) {
+    public void setLogoutUrlPattern(final String logoutUrlPattern) {
         this.logoutUrlPattern = logoutUrlPattern;
     }
 }
