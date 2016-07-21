@@ -3,10 +3,11 @@ package org.pac4j.sparkjava;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.ApplicationLogoutLogic;
 import org.pac4j.core.engine.DefaultApplicationLogoutLogic;
-import org.pac4j.core.util.CommonHelper;
 import spark.Request;
 import spark.Response;
 import spark.Route;
+
+import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
  * <p>This route handles the application logout process, based on the {@link #applicationLogoutLogic}.</p>
@@ -44,7 +45,8 @@ public class ApplicationLogoutRoute implements Route {
     @Override
     public Object handle(final Request request, final Response response) throws Exception {
 
-        CommonHelper.assertNotNull("config", config);
+        assertNotNull("applicationLogoutLogic", applicationLogoutLogic);
+        assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
 
         applicationLogoutLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.logoutUrlPattern);

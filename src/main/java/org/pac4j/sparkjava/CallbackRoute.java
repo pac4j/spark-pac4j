@@ -3,10 +3,11 @@ package org.pac4j.sparkjava;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.J2ERenewSessionCallbackLogic;
-import org.pac4j.core.util.CommonHelper;
 import spark.Request;
 import spark.Response;
 import spark.Route;
+
+import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
  * <p>This route finishes the login process for an indirect client, based on the {@link #callbackLogic}.</p>
@@ -52,7 +53,8 @@ public class CallbackRoute implements Route {
     @Override
     public Object handle(final Request request, final Response response) throws Exception {
 
-        CommonHelper.assertNotNull("config", config);
+        assertNotNull("callbackLogic", callbackLogic);
+        assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
 
         callbackLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.multiProfile, this.renewSession);

@@ -3,10 +3,11 @@ package org.pac4j.sparkjava;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
-import org.pac4j.core.util.CommonHelper;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
+
+import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
  * <p>This filter protects an url, based on the {@link #securityLogic}.</p>
@@ -55,7 +56,8 @@ public class SecurityFilter implements Filter {
     @Override
     public void handle(final Request request, final Response response) {
 
-        CommonHelper.assertNotNull("config", config);
+        assertNotNull("securityLogic", securityLogic);
+        assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
 
         securityLogic.perform(context, this.config, (ctx, parameters) -> null, config.getHttpActionAdapter(), this.clients, this.authorizers, this.matchers, this.multiProfile);
