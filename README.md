@@ -235,7 +235,7 @@ The demo webapp: [spark-pac4j-demo](https://github.com/pac4j/spark-pac4j-demo) i
 
 ## Release notes
 
-See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes). Learn more by browsing the [spark-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/spark-pac4j/1.2.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.9.2/index.html).
+See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes). Learn more by browsing the [spark-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/spark-pac4j/1.2.1) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.9.2/index.html).
 
 
 ## Need help?
