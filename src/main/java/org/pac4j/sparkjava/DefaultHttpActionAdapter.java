@@ -28,6 +28,7 @@ public class DefaultHttpActionAdapter implements HttpActionAdapter<Object, Spark
             halt(HttpConstants.OK, context.getBody());
         } else if (code == HttpConstants.TEMP_REDIRECT) {
             context.getSparkResponse().redirect(context.getLocation());
+            halt();
         }
         return null;
     }
