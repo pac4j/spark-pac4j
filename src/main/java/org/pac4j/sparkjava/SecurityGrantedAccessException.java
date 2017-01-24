@@ -11,6 +11,6 @@ import org.pac4j.core.exception.TechnicalException;
 public class SecurityGrantedAccessException extends TechnicalException {
 
     public SecurityGrantedAccessException() {
-        super("access grenated");
+        super("access granted");
     }
 }
