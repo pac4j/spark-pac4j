@@ -3,11 +3,15 @@ package org.pac4j.sparkjava;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
+
+import static spark.Spark.halt;
 
 /**
  * <p>This filter protects an url, based on the {@link #securityLogic}.</p>
@@ -20,6 +24,8 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  * @since 1.0.0
  */
 public class SecurityFilter implements Filter {
+
+    protected Logger logger = LoggerFactory.getLogger(getClass());
 
     private SecurityLogic<Object, SparkWebContext> securityLogic = new DefaultSecurityLogic<>();
 
@@ -60,7 +66,17 @@ public class SecurityFilter implements Filter {
         assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
 
-        securityLogic.perform(context, this.config, (ctx, parameters) -> null, config.getHttpActionAdapter(), this.clients, this.authorizers, this.matchers, this.multiProfile);
+        try {
+            securityLogic.perform(context, this.config, (ctx, parameters) -> {
+                throw new SecurityGrantedAccessException();
+            }, config.getHttpActionAdapter(), this.clients, this.authorizers, this.matchers, this.multiProfile);
+            logger.debug("Halt the request processing");
+            // stop the processing if no success granted access exception has been raised
+            halt();
+        } catch (final SecurityGrantedAccessException e) {
+            // ignore this exception, it meants the access is granted: continue
+            logger.debug("Received SecurityGrantedAccessException -> continue");
+        }
     }
 
     public SecurityLogic<Object, SparkWebContext> getSecurityLogic() {
