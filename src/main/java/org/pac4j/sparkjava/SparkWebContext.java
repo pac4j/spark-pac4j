@@ -18,10 +18,6 @@ public class SparkWebContext extends J2EContext {
 
 	private final Response response;
 
-	private int status = 0;
-
-	private String body = null;
-
 	private String location = null;
 
 	public SparkWebContext(final Request request, final Response response) {
@@ -37,25 +33,19 @@ public class SparkWebContext extends J2EContext {
 	@Override
 	public void writeResponseContent(String content) {
 		response.body(content);
-		body = content;
 	}
 
 	@Override
 	public void setResponseStatus(int code) {
 		response.status(code);
-		status = code;
-	}
-
-	public String getBody() {
-		return body;
-	}
-
-	public int getStatus() {
-		return status;
 	}
 
 	public Response getSparkResponse() {
 		return response;
+	}
+
+	public Request getSparkRequest() {
+		return request;
 	}
 
 	@Override
