@@ -215,6 +215,10 @@ get("/logout", new ApplicationLogoutRoute(config, "/?defaulturlafterlogout"));
 
 ## Migration guide
 
+### 1.2 -> 1.3
+
+Use `context.getSparkResponse().body()` instead of `context.getBody()`.
+
 ### 1.1 -> 1.2
 
 The `RequiresAuthenticationFilter` is now named `SecurityFilter`.
