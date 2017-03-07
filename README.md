@@ -45,44 +45,68 @@ It can be built via a configuration factory (`org.pac4j.core.config.ConfigFactor
 ```java
 public class DemoConfigFactory implements ConfigFactory {
 
-  public Config build() {
-    OidcClient oidcClient = new GoogleOidcClient();
-    oidcClient.setClientID(clientId);
-    oidcClient.setSecret(secret);
-    oidcClient.setUseNonce(true);
-    oidcClient.addCustomParam("prompt", "consent");
-    oidcClient.setAuthorizationGenerator(profile -> profile.addRole("ROLE_ADMIN"));
+    private final String salt;
 
-    SAML2ClientConfiguration cfg = new SAML2ClientConfiguration("resource:samlKeystore.jks", "pac4j-demo-passwd", "pac4j-demo-passwd", "resource:metadata-okta.xml");
-    cfg.setMaximumAuthenticationLifetime(3600);
-    cfg.setServiceProviderEntityId("http://localhost:8080/callback?client_name=SAML2Client");
-    cfg.setServiceProviderMetadataPath("sp-metadata.xml");
-    SAML2Client saml2Client = new SAML2Client(cfg);
+    private final TemplateEngine templateEngine;
 
-    FacebookClient facebookClient = new FacebookClient(fbId, fbSecret);
-    TwitterClient twitterClient = new TwitterClient(twId, twSecret);
+    public DemoConfigFactory(final String salt, final TemplateEngine templateEngine) {
+        this.salt = salt;
+        this.templateEngine = templateEngine;
+    }
 
-    FormClient formClient = new FormClient("http://localhost:8080/loginForm", new SimpleTestUsernamePasswordAuthenticator());
-    IndirectBasicAuthClient indirectBasicAuthClient = new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
+    @Override
+    public Config build() {
+        final OidcConfiguration oidcConfiguration = new OidcConfiguration();
+        oidcConfiguration.setClientId("343992089165-sp0l1km383i8cbm2j5nn20kbk5dk8hor.apps.googleusercontent.com");
+        oidcConfiguration.setSecret("uR3D8ej1kIRPbqAFaxIE3HWh");
+        oidcConfiguration.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration");
+        oidcConfiguration.setUseNonce(true);
+        oidcConfiguration.addCustomParam("prompt", "consent");
+        final OidcClient oidcClient = new OidcClient(oidcConfiguration);
+        oidcClient.setAuthorizationGenerator((ctx, profile) -> { profile.addRole("ROLE_ADMIN"); return profile; });
 
-    CasClient casClient = new CasClient("https://casserverpac4j.herokuapp.com/login");
+        final SAML2ClientConfiguration cfg = new SAML2ClientConfiguration("resource:samlKeystore.jks", "pac4j-demo-passwd",
+                                                "pac4j-demo-passwd", "resource:metadata-okta.xml");
+        cfg.setMaximumAuthenticationLifetime(3600);
+        cfg.setServiceProviderEntityId("http://localhost:8080/callback?client_name=SAML2Client");
+        cfg.setServiceProviderMetadataPath("sp-metadata.xml");
+        final SAML2Client saml2Client = new SAML2Client(cfg);
 
-    ParameterClient parameterClient = new ParameterClient("token", new JwtAuthenticator(salt));
-    parameterClient.setSupportGetRequest(true);
-    parameterClient.setSupportPostRequest(false);
+        final FacebookClient facebookClient = new FacebookClient("145278422258960", "be21409ba8f39b5dae2a7de525484da8");
+        final TwitterClient twitterClient = new TwitterClient("CoxUiYwQOSFDReZYdjigBA", "2kAzunH5Btc4gRSaMr7D7MkyoJ5u1VzbOOzE8rBofs");
+        
+        final FormClient formClient = new FormClient("http://localhost:8080/loginForm", new SimpleTestUsernamePasswordAuthenticator());
+        final IndirectBasicAuthClient indirectBasicAuthClient = new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
 
-    DirectBasicAuthClient directBasicAuthClient = new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
+        final CasConfiguration casConfiguration = new CasConfiguration("https://casserverpac4j.herokuapp.com/login");
+        final CasClient casClient = new CasClient(casConfiguration);
 
-    Clients clients = new Clients("http://localhost:8080/callback", oidcClient, saml2Client, facebookClient,
-              twitterClient, formClient, indirectBasicAuthClient, casClient, parameterClient, directBasicAuthClient);
+        ParameterClient parameterClient = new ParameterClient("token", new JwtAuthenticator(new SecretSignatureConfiguration(salt)));
+        parameterClient.setSupportGetRequest(true);
+        parameterClient.setSupportPostRequest(false);
 
-    Config config = new Config(clients);
-    config.addAuthorizer("admin", new RequireAnyRoleAuthorizer("ROLE_ADMIN"));
-    config.addAuthorizer("custom", new CustomAuthorizer());
-    config.addMatcher("excludedPath", new ExcludedPathMatcher("^/facebook/notprotected$"));
-    config.setHttpActionAdapter(new DemoHttpActionAdapter(templateEngine));
-    return config;
-  }
+        final DirectBasicAuthClient directBasicAuthClient = new DirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
+
+        final HeaderClient headerClient = new HeaderClient("Authorization", (credentials, ctx) -> {
+            final String token = ((TokenCredentials) credentials).getToken();
+            if (CommonHelper.isNotBlank(token)) {
+                final CommonProfile profile = new CommonProfile();
+                profile.setId(token);
+                credentials.setUserProfile(profile);
+            }
+        });
+
+        final Clients clients = new Clients("http://localhost:8080/callback", oidcClient, saml2Client, facebookClient,
+                twitterClient, formClient, indirectBasicAuthClient, casClient, parameterClient, directBasicAuthClient, new AnonymousClient(),
+                headerClient);
+
+        final Config config = new Config(clients);
+        config.addAuthorizer("admin", new RequireAnyRoleAuthorizer("ROLE_ADMIN"));
+        config.addAuthorizer("custom", new CustomAuthorizer());
+        config.addMatcher("excludedPath", new PathMatcher().excludeRegex("^/facebook/notprotected$"));
+        config.setHttpActionAdapter(new DemoHttpActionAdapter(templateEngine));
+        return config;
+    }
 }
 ```
 
