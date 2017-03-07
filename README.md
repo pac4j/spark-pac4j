@@ -2,8 +2,8 @@
   <img src="https://pac4j.github.io/pac4j/img/logo-spark.png" width="300" />
 </p>
 
-The `spark-pac4j` project is an **easy and powerful security library for Sparkjava** web applications which supports authentication and authorization, but also application logout and advanced features like session fixation and CSRF protection.
-It's based on Java 8, Spark 2.5 and on the **[pac4j security engine](https://github.com/pac4j/pac4j)**. It's available under the Apache 2 license.
+The `spark-pac4j` project is an **easy and powerful security library for Sparkjava** web applications which supports authentication and authorization, but also logout and advanced features like session fixation and CSRF protection.
+It's based on Java 8, Spark 2.5 and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v5**. It's available under the Apache 2 license.
 
 [**Main concepts and components:**](http://www.pac4j.org/docs/main-concepts-and-components.html)
 
@@ -19,7 +19,7 @@ It's based on Java 8, Spark 2.5 and on the **[pac4j security engine](https://git
 
 4) The `CallbackRoute` finishes the login process for an indirect client
 
-5) The `ApplicationLogoutRoute` logs out the user from the application.
+5) The `LogoutRoute` logs out the user from the application.
 
 ==
 
@@ -29,8 +29,8 @@ Just follow these easy steps to secure your Sparkjava web application:
 
 You need to add a dependency on:
  
-- the `spark-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.3.0**)
-- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **1.9.5**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
+- the `spark-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **2.0.0-RC2-SNAPSHOT**)
+- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **2.0.0-RC2-SNAPSHOT**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
 
 All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
@@ -88,11 +88,7 @@ public class DemoConfigFactory implements ConfigFactory {
 
 `http://localhost:8080/callback` is the url of the callback endpoint, which is only necessary for indirect clients.
 
-Notice that you can define:
-
-1) a specific [`SessionStore`](http://www.pac4j.org/docs/session-store.html) using the `setSessionStore(sessionStore)` method (by default, it uses the `J2ESessionStore` which relies on the J2E HTTP session)
-
-2) specific [matchers](http://www.pac4j.org/docs/matchers.html) via the `addMatcher(name, Matcher)` method.
+Notice that you can define specific [matchers](http://www.pac4j.org/docs/matchers.html) via the `addMatcher(name, Matcher)` method.
 
 ---
 
@@ -188,32 +184,51 @@ FacebookProfile facebookProfile = (FacebookProfile) commonProfile;
 
 ---
 
-### 6) Logout (`ApplicationLogoutFilter`)
+### 6) Logout (`LogoutFilter`)
 
-You can log out the current authenticated user using the `ApplicationLogoutRoute`. It has the following behaviour:
+The `LogoutFilter` can handle:
+ 
+- the local logout by removing the pac4j profiles from the session (it can be used for the front-channel logout from the identity provider in case of a central logout)
+- the central logout by calling the identity provider logout endpoint.
 
-1) after logout, the user is redirected to the url defined by the `url` request parameter if it matches the `logoutUrlPattern`
 
-2) or the user is redirected to the `defaultUrl` if it is defined
+It has the following behaviour:
 
-3) otherwise, a blank page is displayed.
+1) If the `localLogout` property is `true`, the pac4j profiles are removed from the web session (and the web session is destroyed if the `destroySession` property is `true`)
+
+2) A post logout action is computed as the redirection to the `url` request parameter if it matches the `logoutUrlPattern` or to the `defaultUrl` if it is defined or as a blank page otherwise
+
+3) If the `centralLogout` property is `true`, the user is redirected to the identity provider for a central logout and
+then optionally to the post logout redirection URL (if it's supported by the identity provider and if it's an absolute URL).
+If no central logout is defined, the post logout action is performed directly.
 
 
 The following parameters are available:
 
 1) `defaultUrl` (optional): the default logout url if no `url` request parameter is provided or if the `url` does not match the `logoutUrlPattern` (not defined by default)
 
-2) `logoutUrlPattern` (optional): the logout url pattern that the `url` parameter must match (only relative urls are allowed by default).
+2) `logoutUrlPattern` (optional): the logout url pattern that the `url` parameter must match (only relative urls are allowed by default)
+
+3) `localLogout` (optional): whether a local logout must be performed (`true` by default)
+
+4) `destroySession` (optional):  whether we must destroy the web session during the local logout (`false` by default)
+
+5) `centralLogout` (optional): whether a central logout must be performed (`false` by default).
+
 
 Example:
 
 ```java
-get("/logout", new ApplicationLogoutRoute(config, "/?defaulturlafterlogout"));
+get("/logout", new LogoutRoute(config, "/?defaulturlafterlogout"));
 ```
 
 ---
 
 ## Migration guide
+
+### 1.3 -> 2.0
+
+The `ApplicationLogoutRoute` has been renamed as `LogoutRoute` with more options.
 
 ### 1.2 -> 1.3
 
@@ -234,12 +249,12 @@ The application logout process can be managed with the `ApplicationLogoutFilter`
 
 ## Demo
 
-The demo webapp: [spark-pac4j-demo](https://github.com/pac4j/spark-pac4j-demo) is available for tests and implement many authentication mechanisms: Facebook, Twitter, form, basic auth, CAS, SAML, OpenID Connect, JWT...
+The demo webapp: [spark-pac4j-demo](https://github.com/pac4j/spark-pac4j-demo) is available for tests and implements many authentication mechanisms: Facebook, Twitter, form, basic auth, CAS, SAML, OpenID Connect, JWT...
 
 
 ## Release notes
 
-See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes). Learn more by browsing the [spark-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/spark-pac4j/1.3.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.9.5/index.html).
+See the [release notes](https://github.com/pac4j/spark-pac4j/wiki/Release-Notes). Learn more by browsing the [spark-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/spark-pac4j/2.0.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/2.0.0/index.html).
 
 
 ## Need help?
@@ -252,7 +267,7 @@ If you have any question, please use the following mailing lists:
 
 ## Development
 
-The version 1.3.1-SNAPSHOT is under development.
+The version 2.0.0-RC2-SNAPSHOT is under development.
 
 Maven artifacts are built via Travis: [![Build Status](https://travis-ci.org/pac4j/spark-pac4j.png?branch=master)](https://travis-ci.org/pac4j/spark-pac4j) and available in the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j). This repository must be added in the Maven *pom.xml* file for example:
 

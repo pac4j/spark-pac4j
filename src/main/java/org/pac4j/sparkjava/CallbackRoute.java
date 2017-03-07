@@ -2,7 +2,7 @@ package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.CallbackLogic;
-import org.pac4j.core.engine.J2ERenewSessionCallbackLogic;
+import org.pac4j.core.engine.DefaultCallbackLogic;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -21,7 +21,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class CallbackRoute implements Route {
 
-    private CallbackLogic<Object, SparkWebContext> callbackLogic = new J2ERenewSessionCallbackLogic<>();
+    private CallbackLogic<Object, SparkWebContext> callbackLogic = new DefaultCallbackLogic<>();
 
     private Config config;
 
