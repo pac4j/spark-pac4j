@@ -55,7 +55,7 @@ public class DemoConfigFactory implements ConfigFactory {
     }
 
     @Override
-    public Config build() {
+    public Config build(final Object... parameters) {
         final OidcConfiguration oidcConfiguration = new OidcConfiguration();
         oidcConfiguration.setClientId("343992089165-sp0l1km383i8cbm2j5nn20kbk5dk8hor.apps.googleusercontent.com");
         oidcConfiguration.setSecret("uR3D8ej1kIRPbqAFaxIE3HWh");
