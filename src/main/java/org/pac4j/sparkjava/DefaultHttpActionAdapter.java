@@ -12,7 +12,7 @@ import spark.Spark;
  * Default HTTP action adapter.
  *
  * @author Jerome Leleu
- * @author Marco Günther
+ * @author Marco Guenther
  * @since 1.1.0
  */
 public class DefaultHttpActionAdapter implements HttpActionAdapter<Object, SparkWebContext> {
@@ -33,23 +33,27 @@ public class DefaultHttpActionAdapter implements HttpActionAdapter<Object, Spark
     public Object adapt(int code, SparkWebContext context) {
         logger.debug("requires HTTP action: {}", code);
         if (code == HttpConstants.UNAUTHORIZED) {
-            halt(HttpConstants.UNAUTHORIZED, "authentication required", context);
+            stop(HttpConstants.UNAUTHORIZED, "authentication required");
         } else if (code == HttpConstants.FORBIDDEN) {
-            halt(HttpConstants.FORBIDDEN, "forbidden", context);
+            stop(HttpConstants.FORBIDDEN, "forbidden");
         } else if (code == HttpConstants.OK) {
-            halt(HttpConstants.OK, context.getSparkResponse().body(), context);
+            stop(HttpConstants.OK, context.getSparkResponse().body());
         } else if (code == HttpConstants.TEMP_REDIRECT) {
             context.getSparkResponse().redirect(context.getLocation());
         }
         return null;
     }
 
-	protected void halt(int status, String body, SparkWebContext context) {
-		context.setResponseHeader("content-type", "text/plain");
+	/**
+	 * Immediately stop the request.
+	 * @param code the HTTP action status code
+	 * @param body the HTTP action response body
+	 */
+	protected void stop(int code, String body) {
 		if (service == null) {
-			Spark.halt(status, body);
+			Spark.halt(code, body);
 		} else {
-			service.halt(status, body);
+			service.halt(code, body);
 		}
 	}
 
