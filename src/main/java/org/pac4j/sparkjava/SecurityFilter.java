@@ -65,17 +65,16 @@ public class SecurityFilter implements Filter {
         assertNotNull("securityLogic", securityLogic);
         assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
-
-        try {
-            securityLogic.perform(context, this.config, (ctx, parameters) -> {
-                throw new SecurityGrantedAccessException();
-            }, config.getHttpActionAdapter(), this.clients, this.authorizers, this.matchers, this.multiProfile);
+        final Object result = securityLogic.perform(context, this.config,
+                (ctx, parameters) -> SecurityGrantedAccess.INSTANCE, config.getHttpActionAdapter(),
+                this.clients, this.authorizers, this.matchers, this.multiProfile);
+        if (result == SecurityGrantedAccess.INSTANCE) {
+            // It means that the access is granted: continue
+            logger.debug("Received SecurityGrantedAccessException -> continue");
+        } else {
             logger.debug("Halt the request processing");
             // stop the processing if no success granted access exception has been raised
             halt();
-        } catch (final SecurityGrantedAccessException e) {
-            // ignore this exception, it meants the access is granted: continue
-            logger.debug("Received SecurityGrantedAccessException -> continue");
         }
     }
 
