@@ -25,6 +25,8 @@ import static spark.Spark.halt;
  */
 public class SecurityFilter implements Filter {
 
+    private static final String SECURITY_GRANTED_ACCESS = "SECURITY_GRANTED_ACCESS";
+
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     private SecurityLogic<Object, SparkWebContext> securityLogic = new DefaultSecurityLogic<>();
@@ -66,14 +68,14 @@ public class SecurityFilter implements Filter {
         assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
         final Object result = securityLogic.perform(context, this.config,
-                (ctx, parameters) -> SecurityGrantedAccess.INSTANCE, config.getHttpActionAdapter(),
+                (ctx, parameters) -> SECURITY_GRANTED_ACCESS, config.getHttpActionAdapter(),
                 this.clients, this.authorizers, this.matchers, this.multiProfile);
-        if (result == SecurityGrantedAccess.INSTANCE) {
+        if (result == SECURITY_GRANTED_ACCESS) {
             // It means that the access is granted: continue
-            logger.debug("Received SecurityGrantedAccessException -> continue");
+            logger.debug("Received SECURITY_GRANTED_ACCESS -> continue");
         } else {
             logger.debug("Halt the request processing");
-            // stop the processing if no success granted access exception has been raised
+            // stop the processing if no SECURITY_GRANTED_ACCESS has been received
             halt();
         }
     }
