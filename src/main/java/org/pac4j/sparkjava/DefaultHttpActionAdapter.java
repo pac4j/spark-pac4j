@@ -37,7 +37,9 @@ public class DefaultHttpActionAdapter implements HttpActionAdapter<Object, Spark
         } else if (code == HttpConstants.FORBIDDEN) {
             stop(HttpConstants.FORBIDDEN, "forbidden");
         } else if (code == HttpConstants.OK) {
-            stop(HttpConstants.OK, context.getSparkResponse().body());
+			stop(HttpConstants.OK, context.getSparkResponse().body());
+		} else if (code == HttpConstants.NO_CONTENT) {
+        	stop(HttpConstants.NO_CONTENT, "");
         } else if (code == HttpConstants.TEMP_REDIRECT) {
             context.getSparkResponse().redirect(context.getLocation());
         }
