@@ -1,7 +1,7 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.context.HttpConstants;
-import org.pac4j.core.http.HttpActionAdapter;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -12,10 +12,15 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
 /**
  * <p>This route finishes the login process for an indirect client, based on the {@link #callbackLogic}.</p>
  *
- * <p>The configuration can be provided via the following parameters: <code>config</code> (security configuration),
- * <code>defaultUrl</code> (default url after login if none was requested), <code>multiProfile</code> (whether multiple profiles should be kept)
- * and <code>renewSession</code> (whether the session must be renewed after login).</p>
- *
+ * <p>The configuration can be provided via constructors and setter methods:</p>
+ * <ul>
+ *     <li><code>{@link #CallbackRoute(Config)}</code> (security configuration)</li>
+ *     <li><code>{@link #setDefaultUrl(String)}</code> (default url after login if none was requested)</li>
+ *     <li><code>{@link #setSaveInSession(Boolean)}</code> (whether the profile should be saved into the session)</li>
+ *     <li><code>{@link #setMultiProfile(Boolean)}</code> (whether multiple profiles should be kept)</li>
+ *     <li><code>{@link #setRenewSession(Boolean)}</code> (whether the session must be renewed after login)</li>
+ *     <li><code>{@link #setDefaultClient(String)}</code> (the default client if none is provided on the URL)</li>
+ * </ul> *
  * @author Jerome Leleu
  * @since 1.0.0
  */
@@ -27,9 +32,13 @@ public class CallbackRoute implements Route {
 
     private String defaultUrl;
 
+    private Boolean saveInSession;
+
     private Boolean multiProfile;
 
     private Boolean renewSession;
+
+    private String defaultClient;
 
     public CallbackRoute(final Config config) {
         this(config, null);
@@ -57,7 +66,8 @@ public class CallbackRoute implements Route {
         assertNotNull("config", config);
         final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
 
-        callbackLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.multiProfile, this.renewSession);
+        callbackLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.saveInSession,
+                this.multiProfile, this.renewSession, this.defaultClient);
         return null;
     }
 
@@ -91,5 +101,21 @@ public class CallbackRoute implements Route {
 
     public void setRenewSession(final Boolean renewSession) {
         this.renewSession = renewSession;
+    }
+
+    public Boolean getSaveInSession() {
+        return saveInSession;
+    }
+
+    public void setSaveInSession(final Boolean saveInSession) {
+        this.saveInSession = saveInSession;
+    }
+
+    public String getDefaultClient() {
+        return defaultClient;
+    }
+
+    public void setDefaultClient(final String defaultClient) {
+        this.defaultClient = defaultClient;
     }
 }
