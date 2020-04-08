@@ -1,24 +1,22 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.session.JEESessionStore;
+import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.core.util.FindBest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
 
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
-
 import static spark.Spark.halt;
 
 /**
- * <p>This filter protects an url, based on the {@link #securityLogic}.</p>
- *
- * <p>The configuration can be provided via the following parameters: <code>config</code> (security configuration),
- * <code>clients</code> (list of clients for authentication), <code>authorizers</code> (list of authorizers),
- * <code>matchers</code> (list of matchers) and <code>multiProfile</code> (whether multiple profiles should be kept).</p>
+ * <p>This filter protects an url.</p>
  *
  * @author Jerome Leleu
  * @since 1.0.0
@@ -29,7 +27,7 @@ public class SecurityFilter implements Filter {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    private SecurityLogic<Object, SparkWebContext> securityLogic = new DefaultSecurityLogic<>();
+    private SecurityLogic<Object, SparkWebContext> securityLogic;
 
     private Config config;
 
@@ -64,12 +62,13 @@ public class SecurityFilter implements Filter {
     @Override
     public void handle(final Request request, final Response response) {
 
-        assertNotNull("securityLogic", securityLogic);
-        assertNotNull("config", config);
-        final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
-        final Object result = securityLogic.perform(context, this.config,
-                (ctx, profiles, parameters) -> SECURITY_GRANTED_ACCESS, config.getHttpActionAdapter(),
-                this.clients, this.authorizers, this.matchers, this.multiProfile);
+        final SessionStore<SparkWebContext> bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
+        final HttpActionAdapter<Object, SparkWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
+        final SecurityLogic<Object, SparkWebContext> bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
+
+        final SparkWebContext context = new SparkWebContext(request, response, bestSessionStore);
+        final Object result = bestLogic.perform(context, this.config, (ctx, profiles, parameters) -> SECURITY_GRANTED_ACCESS,
+                bestAdapter, this.clients, this.authorizers, this.matchers, this.multiProfile);
         if (result == SECURITY_GRANTED_ACCESS) {
             // It means that the access is granted: continue
             logger.debug("Received SECURITY_GRANTED_ACCESS -> continue");

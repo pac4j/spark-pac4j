@@ -1,32 +1,25 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.session.JEESessionStore;
+import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.DefaultCallbackLogic;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.core.util.FindBest;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
-
 /**
- * <p>This route finishes the login process for an indirect client, based on the {@link #callbackLogic}.</p>
+ * <p>This route finishes the login process for an indirect client.</p>
  *
- * <p>The configuration can be provided via constructors and setter methods:</p>
- * <ul>
- *     <li><code>{@link #CallbackRoute(Config)}</code> (security configuration)</li>
- *     <li><code>{@link #setDefaultUrl(String)}</code> (default url after login if none was requested)</li>
- *     <li><code>{@link #setSaveInSession(Boolean)}</code> (whether the profile should be saved into the session)</li>
- *     <li><code>{@link #setMultiProfile(Boolean)}</code> (whether multiple profiles should be kept)</li>
- *     <li><code>{@link #setRenewSession(Boolean)}</code> (whether the session must be renewed after login)</li>
- *     <li><code>{@link #setDefaultClient(String)}</code> (the default client if none is provided on the URL)</li>
- * </ul> *
  * @author Jerome Leleu
  * @since 1.0.0
  */
 public class CallbackRoute implements Route {
 
-    private CallbackLogic<Object, SparkWebContext> callbackLogic = new DefaultCallbackLogic<>();
+    private CallbackLogic<Object, SparkWebContext> callbackLogic;
 
     private Config config;
 
@@ -62,12 +55,14 @@ public class CallbackRoute implements Route {
     @Override
     public Object handle(final Request request, final Response response) throws Exception {
 
-        assertNotNull("callbackLogic", callbackLogic);
-        assertNotNull("config", config);
-        final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
+        final SessionStore<SparkWebContext> bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
+        final HttpActionAdapter<Object, SparkWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
+        final CallbackLogic<Object, SparkWebContext> bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
 
-        callbackLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.saveInSession,
+        final SparkWebContext context = new SparkWebContext(request, response, bestSessionStore);
+        bestLogic.perform(context, config, bestAdapter, this.defaultUrl, this.saveInSession,
                 this.multiProfile, this.renewSession, this.defaultClient);
+
         return null;
     }
 

@@ -1,29 +1,25 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.session.JEESessionStore;
+import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.DefaultLogoutLogic;
 import org.pac4j.core.engine.LogoutLogic;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.core.util.FindBest;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
-
 /**
- * <p>This route handles the (application + identity provider) logout process, based on the {@link #logoutLogic}.</p>
- *
- * <p>The configuration can be provided via the following parameters: <code>config</code> (the security configuration),
- * <code>defaultUrl</code> (default logourl url), <code>logoutUrlPattern</code> (pattern that logout urls must match),
- * <code>localLogout</code> (whether the application logout must be performed),
- * <code>destroySession</code> (whether we must destroy the web session during the local logout)
- * and <code>centralLogout</code> (whether the centralLogout must be performed).</p>
+ * <p>This route handles the (application + identity provider) logout process.</p>
  *
  * @author Jerome Leleu
  * @since 1.1.0
  */
 public class LogoutRoute implements Route {
 
-    private LogoutLogic<Object, SparkWebContext> logoutLogic = new DefaultLogoutLogic<>();
+    private LogoutLogic<Object, SparkWebContext> logoutLogic;
 
     private Config config;
 
@@ -54,11 +50,13 @@ public class LogoutRoute implements Route {
     @Override
     public Object handle(final Request request, final Response response) throws Exception {
 
-        assertNotNull("logoutLogic", logoutLogic);
-        assertNotNull("config", config);
-        final SparkWebContext context = new SparkWebContext(request, response, config.getSessionStore());
+        final SessionStore<SparkWebContext> bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
+        final HttpActionAdapter<Object, SparkWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
+        final LogoutLogic<Object, SparkWebContext> bestLogic = FindBest.logoutLogic(logoutLogic, config, DefaultLogoutLogic.INSTANCE);
 
-        logoutLogic.perform(context, config, config.getHttpActionAdapter(), this.defaultUrl, this.logoutUrlPattern, this.localLogout, this.destroySession, this.centralLogout);
+        final SparkWebContext context = new SparkWebContext(request, response, bestSessionStore);
+        bestLogic.perform(context, config, bestAdapter, this.defaultUrl, this.logoutUrlPattern, this.localLogout, this.destroySession, this.centralLogout);
+
         return null;
     }
 
