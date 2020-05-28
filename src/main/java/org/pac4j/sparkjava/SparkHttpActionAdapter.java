@@ -50,8 +50,10 @@ public class SparkHttpActionAdapter implements HttpActionAdapter<Object, SparkWe
 			} else {
 				stop(code, "");
 			}
+		} else {
+			throw new TechnicalException("No action provided");
 		}
-		throw new TechnicalException("No action provided");
+		return null;
 	}
 
 	/**
