@@ -11,7 +11,7 @@
     <groupId>org.pac4j</groupId>
     <artifactId>spark-pac4j</artifactId>
     <packaging>jar</packaging>
-    <name>pac4j implementation for Sparkjava</name>
+    <name>Sparkjava security library based on pac4j</name>
     <version>4.0.0-SNAPSHOT</version>
     <description>Security library for Sparkjava based on pac4j</description>
     <url>https://github.com/pac4j/spark-pac4j</url>
