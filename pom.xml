@@ -12,7 +12,7 @@
     <artifactId>spark-pac4j</artifactId>
     <packaging>jar</packaging>
     <name>Sparkjava security library based on pac4j</name>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
     <description>Security library for Sparkjava based on pac4j</description>
     <url>https://github.com/pac4j/spark-pac4j</url>
 
@@ -54,8 +54,8 @@
 
     <properties>
         <spark.version>2.9.3</spark.version>
-        <pac4j.version>4.5.5</pac4j.version>
-        <java.version>1.8</java.version>
+        <pac4j.version>5.4.0-SNAPSHOT</pac4j.version>
+        <java.version>11</java.version>
     </properties>
 
     <dependencies>
@@ -66,7 +66,7 @@
         </dependency>
         <dependency>
             <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-core</artifactId>
+            <artifactId>pac4j-javaee</artifactId>
             <version>${pac4j.version}</version>
         </dependency>
     </dependencies>
@@ -115,9 +115,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>3.0.5</version>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.2.3</version>
                 <configuration>
                     <effort>Low</effort>
                     <threshold>Max</threshold>
@@ -126,7 +126,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>run-findbugs</id>
+                        <id>run-sportbugs</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>check</goal>

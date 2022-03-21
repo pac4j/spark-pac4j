@@ -1,8 +1,7 @@
 package org.pac4j.sparkjava;
 
-import org.pac4j.core.context.JEEContext;
-import org.pac4j.core.context.session.JEESessionStore;
-import org.pac4j.core.context.session.SessionStore;
+import org.pac4j.core.util.CommonHelper;
+import org.pac4j.jee.context.JEEContext;
 import spark.Request;
 import spark.Response;
 
@@ -19,11 +18,9 @@ public class SparkWebContext extends JEEContext {
 	private final Response response;
 
 	public SparkWebContext(final Request request, final Response response) {
-		this(request, response, JEESessionStore.INSTANCE);
-	}
-
-	public SparkWebContext(final Request request, final Response response, final SessionStore sessionStore) {
-		super(request.raw(), response.raw(), sessionStore);
+		super(request.raw(), response.raw());
+		CommonHelper.assertNotNull("request", request);
+		CommonHelper.assertNotNull("response", response);
 		this.request = request;
 		this.response = response;
 	}

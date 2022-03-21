@@ -1,12 +1,13 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.session.JEESessionStore;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.DefaultCallbackLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.util.FindBest;
+import org.pac4j.jee.context.session.JEESessionStore;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -19,15 +20,11 @@ import spark.Route;
  */
 public class CallbackRoute implements Route {
 
-    private CallbackLogic<Object, SparkWebContext> callbackLogic;
+    private CallbackLogic callbackLogic;
 
     private Config config;
 
     private String defaultUrl;
-
-    private Boolean saveInSession;
-
-    private Boolean multiProfile;
 
     private Boolean renewSession;
 
@@ -41,36 +38,30 @@ public class CallbackRoute implements Route {
         this(config, defaultUrl, null);
     }
 
-    public CallbackRoute(final Config config, final String defaultUrl, final Boolean multiProfile) {
-        this(config, defaultUrl, multiProfile, null);
-    }
-
-    public CallbackRoute(final Config config, final String defaultUrl, final Boolean multiProfile, final Boolean renewSession) {
+    public CallbackRoute(final Config config, final String defaultUrl, final Boolean renewSession) {
         this.config = config;
         this.defaultUrl = defaultUrl;
-        this.multiProfile = multiProfile;
         this.renewSession = renewSession;
     }
 
     @Override
     public Object handle(final Request request, final Response response) throws Exception {
 
-        final SessionStore<SparkWebContext> bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
-        final HttpActionAdapter<Object, SparkWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
-        final CallbackLogic<Object, SparkWebContext> bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
+        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
+        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
+        final CallbackLogic bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
 
-        final SparkWebContext context = new SparkWebContext(request, response, bestSessionStore);
-        bestLogic.perform(context, config, bestAdapter, this.defaultUrl, this.saveInSession,
-                this.multiProfile, this.renewSession, this.defaultClient);
+        final WebContext context = FindBest.webContextFactory(null, config, SparkContextFactory.INSTANCE).newContext(request, response);
+        bestLogic.perform(context, bestSessionStore, config, bestAdapter, this.defaultUrl, this.renewSession, this.defaultClient);
 
         return null;
     }
 
-    public CallbackLogic<Object, SparkWebContext> getCallbackLogic() {
+    public CallbackLogic getCallbackLogic() {
         return callbackLogic;
     }
 
-    public void setCallbackLogic(CallbackLogic<Object, SparkWebContext> callbackLogic) {
+    public void setCallbackLogic(final CallbackLogic callbackLogic) {
         this.callbackLogic = callbackLogic;
     }
 
@@ -82,28 +73,12 @@ public class CallbackRoute implements Route {
         this.defaultUrl = defaultUrl;
     }
 
-    public Boolean getMultiProfile() {
-        return multiProfile;
-    }
-
-    public void setMultiProfile(final Boolean multiProfile) {
-        this.multiProfile = multiProfile;
-    }
-
     public Boolean getRenewSession() {
         return renewSession;
     }
 
     public void setRenewSession(final Boolean renewSession) {
         this.renewSession = renewSession;
-    }
-
-    public Boolean getSaveInSession() {
-        return saveInSession;
-    }
-
-    public void setSaveInSession(final Boolean saveInSession) {
-        this.saveInSession = saveInSession;
     }
 
     public String getDefaultClient() {

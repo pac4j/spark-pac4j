@@ -1,6 +1,7 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.context.HttpConstants;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.WithContentAction;
@@ -19,7 +20,7 @@ import spark.Spark;
  * @author Marco Guenther
  * @since 1.1.0
  */
-public class SparkHttpActionAdapter implements HttpActionAdapter<Object, SparkWebContext> {
+public class SparkHttpActionAdapter implements HttpActionAdapter {
 
 	public static final SparkHttpActionAdapter INSTANCE = new SparkHttpActionAdapter();
 
@@ -34,7 +35,7 @@ public class SparkHttpActionAdapter implements HttpActionAdapter<Object, SparkWe
 	}
 
 	@Override
-	public Object adapt(final HttpAction action, final SparkWebContext context) {
+	public Object adapt(final HttpAction action, final WebContext context) {
     	if (action != null) {
     		final int code = action.getCode();
 			logger.debug("requires HTTP action: {}", code);
@@ -42,7 +43,7 @@ public class SparkHttpActionAdapter implements HttpActionAdapter<Object, SparkWe
 			if (action instanceof WithContentAction) {
 				stop(code, ((WithContentAction) action).getContent());
 			} else if (action instanceof WithLocationAction) {
-				context.getSparkResponse().redirect(((WithLocationAction) action).getLocation(), code);
+				((SparkWebContext) context).getSparkResponse().redirect(((WithLocationAction) action).getLocation(), code);
 			} else if (code == HttpConstants.UNAUTHORIZED) {
 				stop(HttpConstants.UNAUTHORIZED, "authentication required");
 			} else if (code == HttpConstants.FORBIDDEN) {

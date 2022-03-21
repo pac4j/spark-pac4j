@@ -1,12 +1,13 @@
 package org.pac4j.sparkjava;
 
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.session.JEESessionStore;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.util.FindBest;
+import org.pac4j.jee.context.session.JEESessionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Filter;
@@ -27,7 +28,7 @@ public class SecurityFilter implements Filter {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    private SecurityLogic<Object, SparkWebContext> securityLogic;
+    private SecurityLogic securityLogic;
 
     private Config config;
 
@@ -36,8 +37,6 @@ public class SecurityFilter implements Filter {
     private String authorizers;
 
     private String matchers;
-
-    private Boolean multiProfile;
 
     public SecurityFilter(final Config config, final String clients) {
         this(config, clients, null, null);
@@ -48,27 +47,21 @@ public class SecurityFilter implements Filter {
     }
 
     public SecurityFilter(final Config config, final String clients, final String authorizers, final String matchers) {
-        this(config, clients, authorizers, matchers, null);
-    }
-
-    public SecurityFilter(final Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
         this.config = config;
         this.clients = clients;
         this.authorizers = authorizers;
         this.matchers = matchers;
-        this.multiProfile = multiProfile;
     }
 
     @Override
     public void handle(final Request request, final Response response) {
 
-        final SessionStore<SparkWebContext> bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
-        final HttpActionAdapter<Object, SparkWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
-        final SecurityLogic<Object, SparkWebContext> bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
+        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, JEESessionStore.INSTANCE);
+        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, SparkHttpActionAdapter.INSTANCE);
+        final SecurityLogic bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
 
-        final SparkWebContext context = new SparkWebContext(request, response, bestSessionStore);
-        final Object result = bestLogic.perform(context, this.config, (ctx, profiles, parameters) -> SECURITY_GRANTED_ACCESS,
-                bestAdapter, this.clients, this.authorizers, this.matchers, this.multiProfile);
+        final WebContext context = FindBest.webContextFactory(null, config, SparkContextFactory.INSTANCE).newContext(request, response);
+        final Object result = bestLogic.perform(context, bestSessionStore, config, (ctx, session, profiles, parameters) -> SECURITY_GRANTED_ACCESS, bestAdapter, this.clients, this.authorizers, this.matchers);
         if (result == SECURITY_GRANTED_ACCESS) {
             // It means that the access is granted: continue
             logger.debug("Received SECURITY_GRANTED_ACCESS -> continue");
@@ -79,11 +72,11 @@ public class SecurityFilter implements Filter {
         }
     }
 
-    public SecurityLogic<Object, SparkWebContext> getSecurityLogic() {
+    public SecurityLogic getSecurityLogic() {
         return securityLogic;
     }
 
-    public void setSecurityLogic(final SecurityLogic<Object, SparkWebContext> securityLogic) {
+    public void setSecurityLogic(final SecurityLogic securityLogic) {
         this.securityLogic = securityLogic;
     }
 
@@ -101,13 +94,5 @@ public class SecurityFilter implements Filter {
 
     public void setMatchers(final String matchers) {
         this.matchers = matchers;
-    }
-
-    public Boolean getMultiProfile() {
-        return multiProfile;
-    }
-
-    public void setMultiProfile(final Boolean multiProfile) {
-        this.multiProfile = multiProfile;
     }
 }
