@@ -12,7 +12,7 @@
     <artifactId>spark-pac4j</artifactId>
     <packaging>jar</packaging>
     <name>Sparkjava security library based on pac4j</name>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.1</version>
     <description>Security library for Sparkjava based on pac4j</description>
     <url>https://github.com/pac4j/spark-pac4j</url>
 
