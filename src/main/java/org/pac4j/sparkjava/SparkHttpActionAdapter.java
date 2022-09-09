@@ -1,6 +1,5 @@
 package org.pac4j.sparkjava;
 
-import org.pac4j.core.context.HttpConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.exception.http.HttpAction;
@@ -9,7 +8,6 @@ import org.pac4j.core.exception.http.WithLocationAction;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import spark.Service;
 import spark.Spark;
 
@@ -44,10 +42,6 @@ public class SparkHttpActionAdapter implements HttpActionAdapter {
 				stop(code, ((WithContentAction) action).getContent());
 			} else if (action instanceof WithLocationAction) {
 				((SparkWebContext) context).getSparkResponse().redirect(((WithLocationAction) action).getLocation(), code);
-			} else if (code == HttpConstants.UNAUTHORIZED) {
-				stop(HttpConstants.UNAUTHORIZED, "authentication required");
-			} else if (code == HttpConstants.FORBIDDEN) {
-				stop(HttpConstants.FORBIDDEN, "forbidden");
 			} else {
 				stop(code, "");
 			}
