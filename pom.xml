@@ -61,7 +61,7 @@
 
     <properties>
         <spark.version>2.9.4</spark.version>
-        <pac4j.version>5.7.7</pac4j.version>
+        <pac4j.version>5.7.8</pac4j.version>
         <java.version>11</java.version>
     </properties>
 
