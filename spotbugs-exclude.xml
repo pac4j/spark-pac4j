@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Suppress exposure of internal representation where passing framework objects is intentional -->
+  <Match>
+    <Class name="org.pac4j.sparkjava.CallbackRoute"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.LogoutRoute"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.SecurityFilter"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.SparkHttpActionAdapter"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.SparkWebContext"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.SparkWebContext"/>
+    <Method name="getSparkResponse"/>
+    <Bug pattern="EI_EXPOSE_REP"/>
+  </Match>
+</FindBugsFilter>
