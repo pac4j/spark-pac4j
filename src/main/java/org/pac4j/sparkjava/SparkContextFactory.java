@@ -1,21 +1,28 @@
 package org.pac4j.sparkjava;
 
+import org.pac4j.core.context.FrameworkParameters;
 import org.pac4j.core.context.WebContextFactory;
-import spark.Request;
-import spark.Response;
+import org.pac4j.jee.context.JEEContext;
 
 /**
- * Specific Spark context factory.
- *
- * @author Jerome LELEU
- * @since 5.0.0
+ * Specific Spark context factory for pac4j v6.
  */
 public class SparkContextFactory implements WebContextFactory {
 
+    /**
+     * Singleton instance.
+     */
     public static final SparkContextFactory INSTANCE = new SparkContextFactory();
 
+    /**
+     * Default constructor.
+     */
+    public SparkContextFactory() {
+    }
+
     @Override
-    public SparkWebContext newContext(final Object... parameters) {
-        return new SparkWebContext((Request) parameters[0], (Response) parameters[1]);
+    public JEEContext newContext(final FrameworkParameters parameters) {
+        final SparkFrameworkParameters p = (SparkFrameworkParameters) parameters;
+        return new SparkWebContext(p.getRequest(), p.getResponse());
     }
 }

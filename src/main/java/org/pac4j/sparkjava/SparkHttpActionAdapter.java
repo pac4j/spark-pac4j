@@ -13,55 +13,59 @@ import spark.Spark;
 
 /**
  * Default HTTP action adapter.
- *
- * @author Jerome Leleu
- * @author Marco Guenther
- * @since 1.1.0
  */
 public class SparkHttpActionAdapter implements HttpActionAdapter {
 
-	public static final SparkHttpActionAdapter INSTANCE = new SparkHttpActionAdapter();
+    /** Default singleton instance. */
+    public static final SparkHttpActionAdapter INSTANCE = new SparkHttpActionAdapter();
 
+    /** Logger. */
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-    
+
+    /** Optional Spark Service reference. */
     protected Service service;
 
+    /** Default constructor. */
     public SparkHttpActionAdapter() {}
 
-	public SparkHttpActionAdapter(Service service) {
-		this.service = service;
-	}
+    /**
+     * Construct an adapter bound to a specific Spark Service.
+     * @param service the Spark service
+     */
+    public SparkHttpActionAdapter(Service service) {
+        this.service = service;
+    }
 
-	@Override
-	public Object adapt(final HttpAction action, final WebContext context) {
-    	if (action != null) {
-    		final int code = action.getCode();
-			logger.debug("requires HTTP action: {}", code);
+    @Override
+    public Object adapt(final HttpAction action, final WebContext context) {
+        if (action != null) {
+            final int code = action.getCode();
+            logger.debug("requires HTTP action: {}", code);
 
-			if (action instanceof WithContentAction) {
-				stop(code, ((WithContentAction) action).getContent());
-			} else if (action instanceof WithLocationAction) {
-				((SparkWebContext) context).getSparkResponse().redirect(((WithLocationAction) action).getLocation(), code);
-			} else {
-				stop(code, "");
-			}
-		} else {
-			throw new TechnicalException("No action provided");
-		}
-		return null;
-	}
+            if (action instanceof WithContentAction) {
+                stop(code, ((WithContentAction) action).getContent());
+            } else if (action instanceof WithLocationAction) {
+                ((SparkWebContext) context).getSparkResponse().redirect(((WithLocationAction) action).getLocation(), code);
+            } else {
+                stop(code, "");
+            }
+        } else {
+            throw new TechnicalException("No action provided");
+        }
+        return null;
+    }
 
-	/**
-	 * Immediately stop the request.
-	 * @param code the HTTP action status code
-	 * @param body the HTTP action response body
-	 */
-	protected void stop(int code, String body) {
-		if (service == null) {
-			Spark.halt(code, body);
-		} else {
-			service.halt(code, body);
-		}
-	}
+    /**
+     * Immediately stop the request.
+     * @param code the HTTP action status code
+     * @param body the HTTP action response body
+     */
+    protected void stop(int code, String body) {
+        if (service == null) {
+            Spark.halt(code, body);
+        } else {
+            service.halt(code, body);
+        }
+    }
 
 }

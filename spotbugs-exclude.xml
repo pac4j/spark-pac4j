@@ -26,4 +26,13 @@
     <Method name="getSparkResponse"/>
     <Bug pattern="EI_EXPOSE_REP"/>
   </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.SparkFrameworkParameters"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="org.pac4j.sparkjava.SparkFrameworkParameters"/>
+    <Method name="getResponse"/>
+    <Bug pattern="EI_EXPOSE_REP"/>
+  </Match>
 </FindBugsFilter>

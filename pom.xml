@@ -6,7 +6,7 @@
     <artifactId>spark-pac4j</artifactId>
     <packaging>jar</packaging>
     <name>Sparkjava security library based on pac4j</name>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
     <description>Security library for Sparkjava based on pac4j</description>
     <url>https://github.com/pac4j/spark-pac4j</url>
 
@@ -61,8 +61,8 @@
 
     <properties>
         <spark.version>2.9.4</spark.version>
-        <pac4j.version>5.7.8</pac4j.version>
-        <java.version>11</java.version>
+        <pac4j.version>6.2.2</pac4j.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>
@@ -83,7 +83,7 @@
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.9.0</version>
+                <version>0.8.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
@@ -94,8 +94,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.14.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -107,7 +106,7 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
