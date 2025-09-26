@@ -17,6 +17,11 @@ public class SparkWebContext extends JEEContext {
 
 	private final Response response;
 
+	/**
+	 * Construct a Spark-based JEEContext wrapper.
+	 * @param request the Spark request
+	 * @param response the Spark response
+	 */
 	public SparkWebContext(final Request request, final Response response) {
 		super(request.raw(), response.raw());
 		CommonHelper.assertNotNull("request", request);
@@ -25,10 +30,18 @@ public class SparkWebContext extends JEEContext {
 		this.response = response;
 	}
 
+	/**
+	 * Access the underlying Spark response.
+	 * @return the Spark Response
+	 */
 	public Response getSparkResponse() {
 		return response;
 	}
 
+	/**
+	 * Access the underlying Spark request.
+	 * @return the Spark Request
+	 */
 	public Request getSparkRequest() {
 		return request;
 	}

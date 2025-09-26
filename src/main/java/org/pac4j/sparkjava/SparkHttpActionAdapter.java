@@ -1,12 +1,14 @@
 package org.pac4j.sparkjava;
 
 import lombok.val;
+import org.pac4j.core.context.HttpConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.WithContentAction;
 import org.pac4j.core.exception.http.WithLocationAction;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.jee.context.JEEContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Service;
@@ -42,6 +44,12 @@ public class SparkHttpActionAdapter implements HttpActionAdapter {
         if (action != null) {
             val code = action.getCode();
             logger.debug("requires HTTP action: {}", code);
+
+            val jeeContext = (JEEContext) context;
+            val savedAuthHeader = jeeContext.getSavedAuthenticateHeader();
+            if (savedAuthHeader != null) {
+                jeeContext.getNativeResponse().setHeader(HttpConstants.AUTHENTICATE_HEADER, savedAuthHeader);
+            }
 
             if (action instanceof WithContentAction) {
                 stop(code, ((WithContentAction) action).getContent());
