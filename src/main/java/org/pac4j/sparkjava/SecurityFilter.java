@@ -1,5 +1,6 @@
 package org.pac4j.sparkjava;
 
+import lombok.val;
 import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.SecurityGrantedAccessAdapter;
@@ -85,11 +86,9 @@ public class SecurityFilter implements Filter {
 
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
 
-        final SecurityLogic logic = (securityLogic != null) ? securityLogic : config.getSecurityLogic();
-
         final SecurityGrantedAccessAdapter granted = (context, store, profiles) -> null; // continue filter chain
 
-        final Object result = logic.perform(
+        val result = config.getSecurityLogic().perform(
                 config,
                 granted,
                 this.clients,

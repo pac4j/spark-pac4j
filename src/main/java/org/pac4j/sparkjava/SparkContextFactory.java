@@ -1,5 +1,6 @@
 package org.pac4j.sparkjava;
 
+import lombok.val;
 import org.pac4j.core.context.FrameworkParameters;
 import org.pac4j.core.context.WebContextFactory;
 import org.pac4j.jee.context.JEEContext;
@@ -22,7 +23,7 @@ public class SparkContextFactory implements WebContextFactory {
 
     @Override
     public JEEContext newContext(final FrameworkParameters parameters) {
-        final SparkFrameworkParameters p = (SparkFrameworkParameters) parameters;
+        val p = (SparkFrameworkParameters) parameters;
         return new SparkWebContext(p.getRequest(), p.getResponse());
     }
 }

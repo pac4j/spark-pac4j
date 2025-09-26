@@ -71,9 +71,7 @@ public class CallbackRoute implements Route {
 
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
 
-        final CallbackLogic logic = (callbackLogic != null) ? callbackLogic : config.getCallbackLogic();
-
-        logic.perform(
+        config.getCallbackLogic().perform(
                 config,
                 this.defaultUrl,
                 this.renewSession,

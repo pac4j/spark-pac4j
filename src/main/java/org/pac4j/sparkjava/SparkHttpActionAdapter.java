@@ -1,5 +1,6 @@
 package org.pac4j.sparkjava;
 
+import lombok.val;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.exception.http.HttpAction;
@@ -39,7 +40,7 @@ public class SparkHttpActionAdapter implements HttpActionAdapter {
     @Override
     public Object adapt(final HttpAction action, final WebContext context) {
         if (action != null) {
-            final int code = action.getCode();
+            val code = action.getCode();
             logger.debug("requires HTTP action: {}", code);
 
             if (action instanceof WithContentAction) {

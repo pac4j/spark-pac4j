@@ -81,9 +81,7 @@ public class LogoutRoute implements Route {
 
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
 
-        final LogoutLogic logic = (logoutLogic != null) ? logoutLogic : config.getLogoutLogic();
-
-        logic.perform(
+        config.getLogoutLogic().perform(
                 config,
                 this.defaultUrl,
                 this.logoutUrlPattern,
