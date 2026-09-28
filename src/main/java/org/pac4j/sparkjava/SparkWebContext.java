@@ -5,6 +5,9 @@ import org.pac4j.jee.context.JEEContext;
 import spark.Request;
 import spark.Response;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Web context specific to Sparkjava.
  *
@@ -23,9 +26,7 @@ public class SparkWebContext extends JEEContext {
 	 * @param response the Spark response
 	 */
 	public SparkWebContext(final Request request, final Response response) {
-		super(request.raw(), response.raw());
-		CommonHelper.assertNotNull("request", request);
-		CommonHelper.assertNotNull("response", response);
+		super(raw(request), raw(response));
 		this.request = request;
 		this.response = response;
 	}
@@ -44,6 +45,16 @@ public class SparkWebContext extends JEEContext {
 	 */
 	public Request getSparkRequest() {
 		return request;
+	}
+
+	private static HttpServletRequest raw(final Request request) {
+		CommonHelper.assertNotNull("request", request);
+		return request.raw();
+	}
+
+	private static HttpServletResponse raw(final Response response) {
+		CommonHelper.assertNotNull("response", response);
+		return response.raw();
 	}
 
 	@Override
