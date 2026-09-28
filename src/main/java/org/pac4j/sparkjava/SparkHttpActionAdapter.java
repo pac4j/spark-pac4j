@@ -54,6 +54,7 @@ public class SparkHttpActionAdapter implements HttpActionAdapter {
             if (action instanceof WithContentAction) {
                 stop(code, ((WithContentAction) action).getContent());
             } else if (action instanceof WithLocationAction) {
+                // no halt here: the redirection is sent and null is returned, callers (like the SecurityFilter) must stop the processing
                 ((SparkWebContext) context).getSparkResponse().redirect(((WithLocationAction) action).getLocation(), code);
             } else {
                 stop(code, "");

@@ -19,6 +19,12 @@ import static spark.Spark.halt;
 public class SecurityFilter implements Filter {
 
     /**
+     * Result returned by the security logic when access is granted. Any other result (including {@code null},
+     * which the HTTP action adapter returns after a redirection) means the request must not go further.
+     */
+    private static final Object ACCESS_GRANTED = new Object();
+
+    /**
      * Logger for this filter.
      */
     protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -86,7 +92,7 @@ public class SecurityFilter implements Filter {
 
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
 
-        final SecurityGrantedAccessAdapter granted = (context, store, profiles) -> null; // continue filter chain
+        final SecurityGrantedAccessAdapter granted = (context, store, profiles) -> ACCESS_GRANTED;
 
         val result = config.getSecurityLogic().perform(
                 config,
@@ -97,11 +103,12 @@ public class SecurityFilter implements Filter {
                 new SparkFrameworkParameters(request, response)
         );
 
-        if (result == null) {
+        if (result == ACCESS_GRANTED) {
             logger.debug("Access granted -> continue");
         } else {
-            logger.debug("Halt the request processing");
-            halt();
+            logger.debug("Access not granted -> halt the request processing");
+            // keep the status set by the HTTP action (e.g. 302): a bare halt() resets it to 200 if the response is not committed yet
+            halt(response.status());
         }
     }
 
