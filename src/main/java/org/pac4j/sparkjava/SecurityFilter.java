@@ -30,7 +30,7 @@ public class SecurityFilter implements Filter {
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
-     * Optional custom security logic.
+     * The security logic to execute (overrides the one from the config if set).
      */
     private SecurityLogic securityLogic;
 
@@ -94,7 +94,8 @@ public class SecurityFilter implements Filter {
 
         final SecurityGrantedAccessAdapter granted = (context, store, profiles) -> ACCESS_GRANTED;
 
-        val result = config.getSecurityLogic().perform(
+        final SecurityLogic logic = securityLogic != null ? securityLogic : config.getSecurityLogic();
+        val result = logic.perform(
                 config,
                 granted,
                 this.clients,
