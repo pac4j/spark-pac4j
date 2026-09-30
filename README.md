@@ -2,6 +2,17 @@
   <img src="https://pac4j.github.io/pac4j/img/logo-spark.png" width="300" />
 </p>
 
+<p align="center">
+  <a href="https://central.sonatype.com/artifact/org.pac4j/spark-pac4j"><img src="https://img.shields.io/maven-central/v/org.pac4j/spark-pac4j?label=Maven%20Central" alt="Maven Central" /></a>
+  <a href="https://github.com/pac4j/spark-pac4j/actions/workflows/ci.yml"><img src="https://github.com/pac4j/spark-pac4j/actions/workflows/ci.yml/badge.svg" alt="Build status" /></a>
+  <img src="https://img.shields.io/badge/Java-17%2B-blue" alt="Java 17+" />
+  <img src="https://img.shields.io/badge/Spark%20Java-2.9%2B-blue" alt="Spark Java 2.9+" />
+  <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="Apache 2 license" /></a>
+</p>
+
+> `spark-pac4j` is the Spark Java implementation of **[pac4j](https://github.com/pac4j/pac4j)**, the security engine for Java.
+> If it is useful to you, please ⭐ **[star pac4j on GitHub](https://github.com/pac4j/pac4j)**: it helps other developers discover it!
+
 The `spark-pac4j` project is an **easy and powerful security library for Spark Java web applications and web services** which supports authentication and authorization, but also logout and advanced features like session fixation and CSRF protection.
 It's based on Java 17, Spark 2.9 and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v6**. It's available under the Apache 2 license.
 
